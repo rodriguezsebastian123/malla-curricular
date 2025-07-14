@@ -1,3 +1,37 @@
+// Usuarios válidos
+const usuarios = [{ usuario: "estudiante", clave: "1234" }];
+
+function iniciarSesion() {
+  const user = document.getElementById("usuario").value;
+  const pass = document.getElementById("clave").value;
+  const encontrado = usuarios.find(u => u.usuario === user && u.clave === pass);
+
+  if (encontrado) {
+    localStorage.setItem("usuarioActivo", user);
+    mostrarContenido();
+  } else {
+    document.getElementById("error").innerText = "Usuario o contraseña incorrectos";
+  }
+}
+
+function verificarSesion() {
+  if (localStorage.getItem("usuarioActivo")) {
+    mostrarContenido();
+  }
+}
+
+function cerrarSesion() {
+  localStorage.removeItem("usuarioActivo");
+  location.reload();
+}
+
+function mostrarContenido() {
+  document.getElementById("login").style.display = "none";
+  document.getElementById("contenidoPrincipal").style.display = "block";
+  cargarEstado();
+}
+
+// Datos de ramos
 const ramos = [
   { nombre: "Morfología I", sct: 4, semestre: 1 },
   { nombre: "Ciencias Biológicas y Químicas", sct: 7, semestre: 1 },
@@ -30,24 +64,36 @@ const ramos = [
 
 const malla = document.getElementById("malla");
 
+// Agrupar por semestre
+const semestres = {};
 ramos.forEach((ramo) => {
-  const div = document.createElement("div");
-  div.className = "ramo";
-  div.style.gridColumn = ramo.semestre;
-  div.innerHTML = `${ramo.nombre}<div class="tooltip">SCT: ${ramo.sct}</div>`;
+  if (!semestres[ramo.semestre]) semestres[ramo.semestre] = [];
+  semestres[ramo.semestre].push(ramo);
+});
 
-  div.addEventListener("click", () => {
-    div.classList.toggle("aprobado");
-    div.classList.remove("pendiente");
+Object.keys(semestres).forEach((sem) => {
+  semestres[sem].forEach((ramo, index) => {
+    const div = document.createElement("div");
+    div.className = "ramo";
+    div.style.gridColumn = ramo.semestre;
+    div.style.gridRow = index + 1;
+    div.innerHTML = `${ramo.nombre}<div class="tooltip">SCT: ${ramo.sct}</div>`;
+
+    div.addEventListener("click", () => {
+      div.classList.toggle("aprobado");
+      div.classList.remove("pendiente");
+      guardarEstado();
+    });
+
+    div.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      div.classList.toggle("pendiente");
+      div.classList.remove("aprobado");
+      guardarEstado();
+    });
+
+    malla.appendChild(div);
   });
-
-  div.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    div.classList.toggle("pendiente");
-    div.classList.remove("aprobado");
-  });
-
-  malla.appendChild(div);
 });
 
 document.getElementById("colorPicker").addEventListener("input", (e) => {
@@ -63,21 +109,89 @@ function agregarNota() {
   input.min = 1;
   input.max = 7;
   input.placeholder = "Nota";
+
+  const peso = document.createElement("input");
+  peso.type = "number";
+  peso.min = 1;
+  peso.max = 100;
+  peso.placeholder = "%";
+
   container.appendChild(input);
+  container.appendChild(peso);
+  container.appendChild(document.createElement("br"));
 }
 
 function calcularPromedio() {
   const inputs = document.querySelectorAll("#inputs input");
   let total = 0;
-  let count = 0;
-  inputs.forEach((input) => {
-    const val = parseFloat(input.value);
-    if (!isNaN(val)) {
-      total += val;
-      count++;
+  let pesoTotal = 0;
+
+  for (let i = 0; i < inputs.length; i += 2) {
+    const nota = parseFloat(inputs[i].value);
+    const peso = parseFloat(inputs[i + 1].value);
+    if (!isNaN(nota) && !isNaN(peso)) {
+      total += nota * (peso / 100);
+      pesoTotal += peso;
+    }
+  }
+
+  if (pesoTotal === 100) {
+    document.getElementById("promedioResultado").innerText = `Promedio: ${total.toFixed(2)}`;
+  } else {
+    document.getElementById("promedioResultado").innerText = "La suma de porcentajes debe ser 100%";
+  }
+}
+
+function guardarEstado() {
+  const estado = {};
+  document.querySelectorAll(".ramo").forEach((div, i) => {
+    estado[i] = {
+      aprobado: div.classList.contains("aprobado"),
+      pendiente: div.classList.contains("pendiente"),
+    };
+  });
+  localStorage.setItem("estadoMalla", JSON.stringify(estado));
+  actualizarProgreso();
+}
+
+function cargarEstado() {
+  const estado = JSON.parse(localStorage.getItem("estadoMalla"));
+  if (estado) {
+    document.querySelectorAll(".ramo").forEach((div, i) => {
+      if (estado[i]) {
+        if (estado[i].aprobado) div.classList.add("aprobado");
+        if (estado[i].pendiente) div.classList.add("pendiente");
+      }
+    });
+  }
+  actualizarProgreso();
+}
+
+function filtrarRamos() {
+  const filtro = document.getElementById("filtroEstado").value;
+  document.querySelectorAll(".ramo").forEach((div) => {
+    if (filtro === "todos") {
+      div.style.display = "flex";
+    } else if (div.classList.contains(filtro)) {
+      div.style.display = "flex";
+    } else {
+      div.style.display = "none";
     }
   });
-  const promedio = (total / count).toFixed(2);
-  document.getElementById("promedioResultado").innerText =
-    count > 0 ? `Promedio: ${promedio}` : "Ingresa notas válidas";
+}
+
+function actualizarProgreso() {
+  const total = document.querySelectorAll(".ramo").length;
+  const completados = document.querySelectorAll(".ramo.aprobado").length;
+  const porcentaje = ((completados / total) * 100).toFixed(1);
+  document.getElementById("progreso").innerText = `Progreso: ${completados}/${total} (${porcentaje}%)`;
+}
+
+function exportarComoImagen() {
+  html2canvas(document.getElementById("malla")).then((canvas) => {
+    const link = document.createElement("a");
+    link.download = "malla_curricular.png";
+    link.href = canvas.toDataURL();
+    link.click();
+  });
 }

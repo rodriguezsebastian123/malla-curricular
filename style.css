@@ -1,81 +1,36 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
-  margin: 0;
-  padding: 0;
-}
-
-header {
-  background-color: #007bff;
-  color: white;
-  padding: 10px;
-  text-align: center;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 20px;
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
+  grid-auto-rows: minmax(50px, auto);
   gap: 10px;
   padding: 20px;
 }
 
 .ramo {
-  padding: 10px;
-  background-color: #d9edf7;
-  border: 1px solid #31708f;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 0.3s;
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
-.ramo:hover {
-  background-color: #bce8f1;
+/* Puedes agregar aquí estilos para .aprobado, .pendiente, tooltip, etc., si los tienes */
+
+#login {
+  text-align: center;
+  padding: 40px;
 }
 
-.ramo.aprobado {
-  background-color: #c3e6cb;
-  border-color: #155724;
+#contenidoPrincipal {
+  /* Oculto por defecto, se muestra con JS */
+  display: none;
 }
 
-.ramo.pendiente {
-  background-color: #f5c6cb;
-  border-color: #721c24;
+/* Controles */
+.controls {
+  margin: 20px 0;
 }
 
-.tooltip {
-  position: absolute;
-  background-color: #333;
-  color: #fff;
-  padding: 5px;
-  border-radius: 5px;
-  top: -40px;
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.2s;
-  z-index: 10;
-}
-
-.ramo:hover .tooltip {
-  opacity: 1;
-}
-
+/* Notas sección */
 .notas-section {
-  margin: 20px;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.notas-section input {
-  margin: 5px;
+  margin-top: 20px;
 }
