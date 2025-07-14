@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Malla Obstetricia y Puericultura</title>
+  <meta charset="UTF-8">
+  <title>Malla Curricular Interactiva</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Malla Curricular - Obstetricia y Puericultura</h1>
-
-  <div class="leyenda">
-    <span class="cuadro aprobado"></span> Aprobado
-    <span class="cuadro reprobado"></span> Reprobado
-    <span class="cuadro no-tomado"></span> No tomado
+  <h1>Obstetricia y Puericultura</h1>
+  <div id="niveles"></div>
+  <div class="resumen">
+    <p>Aprobados: <span id="aprobados">0</span></p>
+    <p>Reprobados: <span id="reprobados">0</span></p>
+    <p>Cursando: <span id="cursando">0</span></p>
+    <p>No cursado: <span id="nocursado">0</span></p>
+    <p><strong>Avance total:</strong> <span id="avance">0%</span></p>
   </div>
-
-  <div class="malla-grid" id="malla">
-    <!-- Los ramos se generan dinámicamente -->
-  </div>
-
   <script src="script.js"></script>
 </body>
 </html>

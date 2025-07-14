@@ -1,61 +1,66 @@
-const ramos = [
-  { nombre: "Morfología I", sct: 4, nivel: 1 },
-  { nombre: "Ciencias Biológicas y Químicas", sct: 7, nivel: 1 },
-  { nombre: "Gestión e Investigación en Salud I", sct: 3, nivel: 1 },
-  { nombre: "Rol de la Matrona en la Sociedad", sct: 11, nivel: 1 },
+const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
+const colores = {
+  aprobado: "✅",
+  reprobado: "❌",
+  cursando: "📘",
+  nocursado: "⬜"
+};
 
-  { nombre: "Fundamentos Biológicos I", sct: 6, nivel: 2 },
-  { nombre: "Morfología II", sct: 5, nivel: 2 },
-  { nombre: "Gestión e Investigación en Salud II", sct: 3, nivel: 2 },
-  { nombre: "Atención de Salud Integral a la Mujer", sct: 11, nivel: 2 },
-  { nombre: "Electivo Cultural, Humanista o Deportivo", sct: 3, nivel: 2 },
-
-  { nombre: "Fundamentos Biológicos II", sct: 9, nivel: 3 },
-  { nombre: "Gestión e Investigación en Salud III", sct: 3, nivel: 3 },
-  { nombre: "Embriología y Genética", sct: 4, nivel: 3 },
-  { nombre: "Puerperio y Salud Pública", sct: 13, nivel: 3 },
-
-  { nombre: "Fundamentos Biológicos III", sct: 9, nivel: 4 },
-  { nombre: "Gestión e Investigación en Salud IV", sct: 3, nivel: 4 },
-  { nombre: "Electivo Cultural, Humanista o Deportivo", sct: 3, nivel: 4 },
-  { nombre: "Promoción de la Salud de la Mujer, Control Prenatal y Salud Pública", sct: 15, nivel: 4 },
-
-  { nombre: "Atención Primaria en Salud Familiar y Ginecología Preventiva", sct: 22, nivel: 5 },
-  { nombre: "Gestión e Investigación en Matronería I", sct: 6, nivel: 5 },
-
-  { nombre: "Salud Sexual, Planificación Familiar y Ginecología Preventiva II", sct: 23, nivel: 6 },
-  { nombre: "Gestión e Investigación en Matronería II", sct: 5, nivel: 6 },
-
-  { nombre: "Obstetricia Preventiva I: Parto, Recién Nacido Inmediato", sct: 23, nivel: 7 },
-  { nombre: "Gestión e Investigación en Matronería III", sct: 5, nivel: 7 },
-
-  { nombre: "Obstetricia Preventiva II: Alto Riesgo Obstétrico y Neonatal", sct: 24, nivel: 8 },
-  { nombre: "Seminario de Proyecto de Gestión o Investigación en Matronería", sct: 7, nivel: 8 },
-
-  { nombre: "Práctica Profesional Controlada Urbana o Rural I", sct: 29, nivel: 9 },
-  { nombre: "Práctica Profesional Controlada Urbana o Rural II", sct: 28, nivel: 10 }
+const malla = [
+  { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Módulo Profesional Integrado I"] },
+  { nivel: 2, ramos: ["Fundamentos Biológicos II", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
+  { nivel: 3, ramos: ["Fundamentos Biológicos III", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
+  { nivel: 4, ramos: ["Fundamentos Biológicos IV", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud"] },
+  { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
+  { nivel: 6, ramos: ["Salud Sexual y Planificación Familiar", "Módulo Gestión en Matronería II"] },
+  { nivel: 7, ramos: ["Parto, Recién Nacido Inmediato", "Módulo Gestión en Matronería III"] },
+  { nivel: 8, ramos: ["Alto Riesgo Obstétrico y Neonatal", "Seminario de Gestión o Investigación"] },
+  { nivel: 9, ramos: ["Práctica Profesional Controlada I"] },
+  { nivel: 10, ramos: ["Práctica Profesional Controlada II"] }
 ];
 
-const malla = document.getElementById("malla");
-
-ramos.forEach((ramo) => {
-  const div = document.createElement("div");
-  div.className = "ramo no-tomado";
-  div.style.gridColumn = ramo.nivel;
-  div.textContent = `${ramo.nombre}\nSCT: ${ramo.sct}`;
-
-  div.addEventListener("click", () => {
-    div.classList.toggle("aprobado");
-    div.classList.remove("reprobado", "no-tomado");
+function crearMalla() {
+  const container = document.getElementById("niveles");
+  malla.forEach(n => {
+    const nivel = document.createElement("div");
+    nivel.className = "nivel";
+    nivel.innerHTML = `<h2>Nivel ${n.nivel}</h2>`;
+    n.ramos.forEach(r => {
+      const ramo = document.createElement("div");
+      ramo.className = "ramo";
+      ramo.textContent = r;
+      ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
+      ramo.onclick = cambiarEstado;
+      nivel.appendChild(ramo);
+    });
+    container.appendChild(nivel);
   });
+}
 
-  div.addEventListener("contextmenu", (e) => {
-    e.preventDefault();
-    div.classList.toggle("reprobado");
-    div.classList.remove("aprobado", "no-tomado");
+function cambiarEstado(e) {
+  const div = e.target;
+  const nombre = div.dataset.nombre;
+  let estadoActual = localStorage.getItem(nombre) || "nocursado";
+  let index = estados.indexOf(estadoActual);
+  let nuevoEstado = estados[(index + 1) % estados.length];
+  div.className = "ramo " + nuevoEstado;
+  localStorage.setItem(nombre, nuevoEstado);
+  actualizarResumen();
+}
+
+function cargarEstados() {
+  document.querySelectorAll(".ramo").forEach(div => {
+    let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
+    div.classList.add(estado);
   });
+}
 
-  malla.appendChild(div);
-});
-
+function actualizarResumen() {
+  let contadores = { aprobado: 0, reprobado: 0, cursando: 0, nocursado: 0 };
+  document.querySelectorAll(".ramo").forEach(r => {
+    estados.forEach(est => {
+      if (r.classList.contains(est)) contadores[est]++;
+    });
+  });
+  let total = O
 

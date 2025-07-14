@@ -1,60 +1,56 @@
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f8fc;
-  margin: 20px;
-  padding: 0;
-  text-align: center;
+  font-family: sans-serif;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 20px;
 }
 
 h1 {
-  color: #0072bb;
-  margin-bottom: 20px;
+  text-align: center;
+  color: #0078d7;
 }
 
-.leyenda {
-  margin-bottom: 20px;
-  font-size: 14px;
+#niveles {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.cuadro {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  margin: 0 5px;
-  vertical-align: middle;
+.nivel {
+  margin: 10px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  padding: 10px;
+  width: 220px;
+}
+
+.nivel h2 {
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 10px;
+  background: #0078d7;
+  color: white;
+  padding: 5px 0;
   border-radius: 4px;
 }
 
-.aprobado {
-  background-color: #4CAF50;
-}
-.reprobado {
-  background-color: #E53935;
-}
-.no-tomado {
-  background-color: #9E9E9E;
-}
-
-.malla-grid {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 10px;
-  justify-content: center;
-  max-width: 1400px;
-  margin: 0 auto;
-}
-
 .ramo {
-  padding: 10px;
-  border-radius: 8px;
-  color: white;
+  margin: 5px 0;
+  padding: 5px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s;
   font-size: 13px;
-  font-weight: bold;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  transition: transform 0.2s;
-  white-space: pre-line;
+  text-align: center;
 }
 
-.ramo:hover {
-  transform: scale(1.05);
+.ramo.aprobado { background: #1abc9c; color: white; }
+.ramo.reprobado { background: #e74c3c; color: white; }
+.ramo.cursando  { background: #3498db; color: white; }
+.ramo.nocursado { background: #bdc3c7; color: white; }
+
+.resumen {
+  text-align: center;
+  margin-top: 20px;
 }
