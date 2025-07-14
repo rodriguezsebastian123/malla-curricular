@@ -1,16 +1,34 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Malla Curricular Interactiva</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Malla Curricular - Obstetricia y Puericultura</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Malla Curricular - Ingeniería Informática</h1>
-  <div id="malla"></div>
-  <div id="info-materia" class="oculto"></div>
-<!-- <link rel="stylesheet" href="style.css"> -->
-<!-- <script src="script.js"></script> -->
+  <header>
+    <h1>Malla Curricular - Obstetricia y Puericultura</h1>
+  </header>
+
+  <div class="controls">
+    <label for="colorPicker">Color personalizado:</label>
+    <input type="color" id="colorPicker" value="#d9edf7" />
+  </div>
+
+  <div class="grid" id="malla">
+    <!-- Los ramos se generan con JS -->
+  </div>
+
+  <div class="notas-section">
+    <h3>Calculadora de Promedio</h3>
+    <div id="inputs"></div>
+    <button onclick="agregarNota()">Agregar Nota</button>
+    <button onclick="calcularPromedio()">Calcular Promedio</button>
+    <p id="promedioResultado"></p>
+  </div>
+
   <script src="script.js"></script>
 </body>
 </html>
+
