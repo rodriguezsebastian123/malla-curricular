@@ -3,7 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <title>Malla Curricular Interactiva</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f9fd;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #0078d7;
+    }
+
+    #niveles {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .nivel {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      padding: 10px;
+      width: 220px;
+    }
+
+    .nivel h2 {
+      text-align: center;
+      font-size: 16px;
+      margin-bottom: 10px;
+      background: #0078d7;
+      color: white;
+      padding: 5px 0;
+      border-radius: 4px;
+    }
+
+    .ramo {
+      margin: 5px 0;
+      padding: 6px;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .ramo.aprobado { background: #1abc9c; color: white; }
+    .ramo.reprobado { background: #e74c3c; color: white; }
+    .ramo.cursando  { background: #3498db; color: white; }
+    .ramo.nocursado { background: #bdc3c7; color: white; }
+
+    .resumen {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .resumen p {
+      font-size: 15px;
+      margin: 5px;
+    }
+
+    .resumen strong {
+      font-size: 16px;
+    }
+  </style>
 </head>
 <body>
   <h1>Obstetricia y Puericultura</h1>
@@ -15,6 +81,80 @@
     <p>No cursado: <span id="nocursado">0</span></p>
     <p><strong>Avance total:</strong> <span id="avance">0%</span></p>
   </div>
-  <script src="script.js"></script>
+
+  <script>
+    const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
+
+    const malla = [
+      { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
+      { nivel: 2, ramos: ["Fundamentos Biológicos II", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
+      { nivel: 3, ramos: ["Fundamentos Biológicos III", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
+      { nivel: 4, ramos: ["Fundamentos Biológicos IV", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud, Control Prenatal y Salud Pública"] },
+      { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
+      { nivel: 6, ramos: ["Salud Sexual, Planificación Familiar", "Módulo Gestión en Matronería II"] },
+      { nivel: 7, ramos: ["Obstetricia Preventiva I", "Módulo Gestión en Matronería III"] },
+      { nivel: 8, ramos: ["Obstetricia Preventiva II", "Seminario Proyecto de Gestión o Investigación"] },
+      { nivel: 9, ramos: ["Práctica Profesional Controlada I"] },
+      { nivel: 10, ramos: ["Práctica Profesional Controlada II"] }
+    ];
+
+    function crearMalla() {
+      const container = document.getElementById("niveles");
+      malla.forEach(n => {
+        const nivel = document.createElement("div");
+        nivel.className = "nivel";
+        nivel.innerHTML = `<h2>Nivel ${n.nivel}</h2>`;
+        n.ramos.forEach(r => {
+          const ramo = document.createElement("div");
+          ramo.className = "ramo";
+          ramo.textContent = r;
+          ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
+          ramo.onclick = cambiarEstado;
+          nivel.appendChild(ramo);
+        });
+        container.appendChild(nivel);
+      });
+    }
+
+    function cambiarEstado(e) {
+      const div = e.target;
+      const nombre = div.dataset.nombre;
+      let estadoActual = localStorage.getItem(nombre) || "nocursado";
+      let index = estados.indexOf(estadoActual);
+      let nuevoEstado = estados[(index + 1) % estados.length];
+      div.className = "ramo " + nuevoEstado;
+      localStorage.setItem(nombre, nuevoEstado);
+      actualizarResumen();
+    }
+
+    function cargarEstados() {
+      document.querySelectorAll(".ramo").forEach(div => {
+        let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
+        div.classList.add(estado);
+      });
+    }
+
+    function actualizarResumen() {
+      let contadores = { aprobado: 0, reprobado: 0, cursando: 0, nocursado: 0 };
+      document.querySelectorAll(".ramo").forEach(r => {
+        estados.forEach(est => {
+          if (r.classList.contains(est)) contadores[est]++;
+        });
+      });
+      let total = Object.values(contadores).reduce((a, b) => a + b, 0);
+      document.getElementById("aprobados").textContent = contadores.aprobado;
+      document.getElementById("reprobados").textContent = contadores.reprobado;
+      document.getElementById("cursando").textContent = contadores.cursando;
+      document.getElementById("nocursado").textContent = contadores.nocursado;
+      let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
+      document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
+    }
+
+    window.onload = () => {
+      crearMalla();
+      cargarEstados();
+      actualizarResumen();
+    };
+  </script>
 </body>
 </html>
