@@ -102,3 +102,4 @@ function calcularPromedio() {
   document.getElementById("promedioResultado").innerText =
     count > 0 ? `Promedio: ${promedio}` : "Ingresa notas válidas";
 }
+
