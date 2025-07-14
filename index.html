@@ -6,35 +6,24 @@
   <title>Malla Curricular - Obstetricia y Puericultura</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-<body onload="verificarSesion()">
-  <div id="login" style="text-align:center; padding:40px">
-    <h2>Iniciar Sesión</h2>
-    <input type="text" id="usuario" placeholder="Usuario" />
-    <input type="password" id="clave" placeholder="Contraseña" />
-    <button onclick="iniciarSesion()">Ingresar</button>
-    <p id="error" style="color:red"></p>
-  </div>
-
-  <header id="contenidoPrincipal" style="display:none">
-    <h1>Malla Curricular - Obstetricia y Puericultura</h1>
-    <button onclick="cerrarSesion()" style="margin: 20px;">Cerrar sesión</button>
-  </header>
+<body>
+  <h1>Malla Curricular - Obstetricia y Puericultura</h1>
 
   <div class="controls">
     <label for="filtroEstado">Filtrar:</label>
     <select id="filtroEstado" onchange="filtrarRamos()">
       <option value="todos">Todos</option>
       <option value="aprobado">Aprobados</option>
-      <option value="pendiente">Pendientes</option>
+      <option value="reprobado">Reprobados</option>
+      <option value="no-tomado">No tomados</option>
     </select>
 
     <button onclick="exportarComoImagen()">Exportar como Imagen</button>
-    <div id="progreso"></div>
     <label for="colorPicker">Color personalizado:</label>
-    <input type="color" id="colorPicker" value="#d9edf7" />
+    <input type="color" id="colorPicker" value="#9E9E9E" />
   </div>
 
-  <div class="grid" id="malla">
+  <div class="grid-container" id="malla">
     <!-- Los ramos se generan con JS -->
   </div>
 
@@ -50,5 +39,4 @@
   <script src="script.js"></script>
 </body>
 </html>
-
 

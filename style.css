@@ -1,36 +1,61 @@
-.grid {
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f7f7f7;
+  margin: 20px;
+  padding: 0;
+  text-align: center;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.controls {
+  margin-bottom: 20px;
+}
+
+.grid-container {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
-  grid-auto-rows: minmax(50px, auto);
   gap: 10px;
-  padding: 20px;
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 1200px;
 }
 
 .ramo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  background-color: #9e9e9e; /* por defecto: no tomado */
+  transition: transform 0.2s;
+  word-wrap: break-word;
+  font-size: 14px;
 }
 
-/* Puedes agregar aquí estilos para .aprobado, .pendiente, tooltip, etc., si los tienes */
-
-#login {
-  text-align: center;
-  padding: 40px;
+.ramo:hover {
+  transform: scale(1.05);
 }
 
-#contenidoPrincipal {
-  /* Oculto por defecto, se muestra con JS */
-  display: none;
+.aprobado {
+  background-color: #4CAF50 !important; /* verde */
 }
 
-/* Controles */
-.controls {
-  margin: 20px 0;
+.reprobado {
+  background-color: #E53935 !important; /* rojo */
 }
 
-/* Notas sección */
+.no-tomado {
+  background-color: #9E9E9E !important; /* gris */
+}
+
 .notas-section {
-  margin-top: 20px;
+  margin-top: 40px;
+}
+
+#inputs input {
+  margin: 5px;
 }
