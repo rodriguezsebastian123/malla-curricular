@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Malla Curricular Interactiva</title>
   <style>
     body {
@@ -10,19 +10,28 @@
       margin: 0;
       padding: 20px;
     }
-
     h1 {
       text-align: center;
       color: #0078d7;
     }
-
+    .color-picker {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .color-picker label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
     #niveles {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
     }
-
     .nivel {
       background: white;
       border-radius: 8px;
@@ -30,7 +39,6 @@
       padding: 10px;
       width: 220px;
     }
-
     .nivel h2 {
       text-align: center;
       font-size: 16px;
@@ -40,50 +48,104 @@
       padding: 5px 0;
       border-radius: 4px;
     }
-
     .ramo {
       margin: 5px 0;
       padding: 6px;
       border-radius: 5px;
       cursor: pointer;
-      transition: background 0.3s;
       font-size: 13px;
       text-align: center;
+      position: relative;
     }
-
-    .ramo.aprobado { background: #1abc9c; color: white; }
-    .ramo.reprobado { background: #e74c3c; color: white; }
-    .ramo.cursando  { background: #3498db; color: white; }
-    .ramo.nocursado { background: #bdc3c7; color: white; }
-
-    .resumen {
+    .ramo::after {
+      content: attr(data-nota);
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-size: 11px;
+      color: #fff;
+    }
+    .resumen, .acciones {
       text-align: center;
-      margin-top: 30px;
+      margin-top: 20px;
     }
-
     .resumen p {
       font-size: 15px;
       margin: 5px;
     }
-
     .resumen strong {
       font-size: 16px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      z-index: 10;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    .modal input {
+      width: 100%;
+      margin: 5px 0;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 5;
+    }
+    button {
+      padding: 8px 12px;
+      margin-top: 10px;
+      font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Obstetricia y Puericultura</h1>
+  <h1>Malla Curricular Interactiva</h1>
+
+  <div class="color-picker">
+    <label>Aprobado <input type="color" id="color-aprobado"></label>
+    <label>Reprobado <input type="color" id="color-reprobado"></label>
+    <label>Cursando <input type="color" id="color-cursando"></label>
+    <label>No cursado <input type="color" id="color-nocursado"></label>
+  </div>
+
   <div id="niveles"></div>
+
   <div class="resumen">
     <p>Aprobados: <span id="aprobados">0</span></p>
     <p>Reprobados: <span id="reprobados">0</span></p>
     <p>Cursando: <span id="cursando">0</span></p>
     <p>No cursado: <span id="nocursado">0</span></p>
     <p><strong>Avance total:</strong> <span id="avance">0%</span></p>
+    <p><strong>Promedio general:</strong> <span id="promedioGeneral">0</span></p>
   </div>
 
+  <div class="acciones">
+    <button onclick="exportarPDF()">Exportar PDF</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modal">
+    <h3>Notas del Ramo</h3>
+    <div id="inputsNotas"></div>
+    <button onclick="agregarInputNota()">+ Agregar Nota</button>
+    <button onclick="guardarNotas()">Guardar</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
     const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
+    let ramoActual = null;
 
     const malla = [
       { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
@@ -110,6 +172,7 @@
           ramo.textContent = r;
           ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
           ramo.onclick = cambiarEstado;
+          ramo.ondblclick = abrirModal;
           nivel.appendChild(ramo);
         });
         container.appendChild(nivel);
@@ -125,12 +188,17 @@
       div.className = "ramo " + nuevoEstado;
       localStorage.setItem(nombre, nuevoEstado);
       actualizarResumen();
+      aplicarColores();
     }
 
     function cargarEstados() {
       document.querySelectorAll(".ramo").forEach(div => {
         let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
         div.classList.add(estado);
+        let nota = JSON.parse(localStorage.getItem("notas_" + div.dataset.nombre));
+        if (nota) {
+          div.setAttribute("data-nota", nota.promedio.toFixed(1));
+        }
       });
     }
 
@@ -148,12 +216,104 @@
       document.getElementById("nocursado").textContent = contadores.nocursado;
       let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
       document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
+
+      // promedio general
+      let totalNotas = 0;
+      let sumaNotas = 0;
+      document.querySelectorAll(".ramo").forEach(r => {
+        const datos = JSON.parse(localStorage.getItem("notas_" + r.dataset.nombre));
+        if (datos) {
+          sumaNotas += datos.promedio;
+          totalNotas++;
+        }
+      });
+      document.getElementById("promedioGeneral").textContent = totalNotas ? (sumaNotas / totalNotas).toFixed(1) : "0";
+    }
+
+    function aplicarColores() {
+      estados.forEach(estado => {
+        const color = document.getElementById("color-" + estado).value;
+        localStorage.setItem("color-" + estado, color);
+        document.querySelectorAll("." + estado).forEach(elem => {
+          elem.style.background = color;
+        });
+      });
+    }
+
+    function cargarColores() {
+      estados.forEach(estado => {
+        const picker = document.getElementById("color-" + estado);
+        picker.value = localStorage.getItem("color-" + estado) || {
+          aprobado: "#1abc9c", reprobado: "#e74c3c", cursando: "#3498db", nocursado: "#bdc3c7"
+        }[estado];
+        picker.oninput = aplicarColores;
+      });
+      aplicarColores();
+    }
+
+    function abrirModal(e) {
+      ramoActual = e.target;
+      const overlay = document.getElementById("overlay");
+      const modal = document.getElementById("modal");
+      const contenedor = document.getElementById("inputsNotas");
+      contenedor.innerHTML = "";
+      let datos = JSON.parse(localStorage.getItem("notas_" + ramoActual.dataset.nombre)) || { notas: [], promedio: 0 };
+      datos.notas.forEach(nota => {
+        const div = document.createElement("div");
+        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}"> <input type="number" placeholder="%" value="${nota.porcentaje}">`;
+        contenedor.appendChild(div);
+      });
+      overlay.style.display = "block";
+      modal.style.display = "block";
+    }
+
+    function agregarInputNota() {
+      const div = document.createElement("div");
+      div.innerHTML = `<input type="number" placeholder="Nota"> <input type="number" placeholder="%" >`;
+      document.getElementById("inputsNotas").appendChild(div);
+    }
+
+    function guardarNotas() {
+      const inputs = document.getElementById("inputsNotas").querySelectorAll("div");
+      let total = 0;
+      let suma = 0;
+      let notas = [];
+      inputs.forEach(div => {
+        const nota = parseFloat(div.children[0].value);
+        const porcentaje = parseFloat(div.children[1].value);
+        if (!isNaN(nota) && !isNaN(porcentaje)) {
+          suma += nota * (porcentaje / 100);
+          total += porcentaje;
+          notas.push({ nota, porcentaje });
+        }
+      });
+      let promedio = total ? suma : 0;
+      localStorage.setItem("notas_" + ramoActual.dataset.nombre, JSON.stringify({ notas, promedio }));
+      ramoActual.setAttribute("data-nota", promedio.toFixed(1));
+      cerrarModal();
+      actualizarResumen();
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    async function exportarPDF() {
+      const canvas = await html2canvas(document.body);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", "a4");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, width, height);
+      pdf.save("malla_curricular.pdf");
     }
 
     window.onload = () => {
       crearMalla();
       cargarEstados();
       actualizarResumen();
+      cargarColores();
     };
   </script>
 </body>
