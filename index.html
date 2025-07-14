@@ -56,6 +56,7 @@
       font-size: 13px;
       text-align: center;
       position: relative;
+      user-select: none;
     }
     .ramo::after {
       content: attr(data-nota);
@@ -88,10 +89,14 @@
       z-index: 10;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      max-width: 300px;
+      width: 90%;
     }
-    .modal input {
-      width: 100%;
-      margin: 5px 0;
+    .modal input[type="number"] {
+      width: 48%;
+      margin: 5px 1%;
+      box-sizing: border-box;
+      padding: 6px;
     }
     .overlay {
       position: fixed;
@@ -103,8 +108,9 @@
     }
     button {
       padding: 8px 12px;
-      margin: 10px 5px;
+      margin: 10px 5px 5px 5px;
       font-weight: bold;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -134,12 +140,13 @@
     <button onclick="resetearMalla()">Resetear malla</button>
   </div>
 
-  <div class="overlay" id="overlay"></div>
+  <div class="overlay" id="overlay" onclick="cerrarModal()"></div>
   <div class="modal" id="modal">
     <h3>Notas del Ramo</h3>
     <div id="inputsNotas"></div>
     <button onclick="agregarInputNota()">+ Agregar Nota</button>
     <button onclick="guardarNotas()">Guardar</button>
+    <button onclick="eliminarNotas()">🗑️ Eliminar notas</button>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -163,6 +170,7 @@
 
     function crearMalla() {
       const container = document.getElementById("niveles");
+      container.innerHTML = "";
       malla.forEach(n => {
         const nivel = document.createElement("div");
         nivel.className = "nivel";
@@ -261,7 +269,7 @@
       let datos = JSON.parse(localStorage.getItem("notas_" + ramoActual.dataset.nombre)) || { notas: [], promedio: 0 };
       datos.notas.forEach(nota => {
         const div = document.createElement("div");
-        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}"> <input type="number" placeholder="%" value="${nota.porcentaje}">`;
+        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}" min="0" max="100" step="0.1"> <input type="number" placeholder="%" value="${nota.porcentaje}" min="0" max="100" step="0.1">`;
         contenedor.appendChild(div);
       });
       overlay.style.display = "block";
@@ -270,7 +278,7 @@
 
     function agregarInputNota() {
       const div = document.createElement("div");
-      div.innerHTML = `<input type="number" placeholder="Nota"> <input type="number" placeholder="%" >`;
+      div.innerHTML = `<input type="number" placeholder="Nota" min="0" max="100" step="0.1"> <input type="number" placeholder="%" min="0" max="100" step="0.1">`;
       document.getElementById("inputsNotas").appendChild(div);
     }
 
@@ -293,6 +301,17 @@
       ramoActual.setAttribute("data-nota", promedio.toFixed(1));
       cerrarModal();
       actualizarResumen();
+    }
+
+    function eliminarNotas() {
+      if (ramoActual) {
+        if (confirm("¿Estás seguro que deseas eliminar todas las notas de este ramo?")) {
+          localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
+          ramoActual.removeAttribute("data-nota");
+          cerrarModal();
+          actualizarResumen();
+        }
+      }
     }
 
     function cerrarModal() {
