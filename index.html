@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Malla Curricular Interactiva</title>
+  <title>Malla Curricular de Dafne</title>
   <style>
     body {
       font-family: sans-serif;
@@ -103,13 +103,13 @@
     }
     button {
       padding: 8px 12px;
-      margin-top: 10px;
+      margin: 10px 5px;
       font-weight: bold;
     }
   </style>
 </head>
 <body>
-  <h1>Malla Curricular Interactiva</h1>
+  <h1>Malla Curricular de Dafne — Para que sea la mejor obstetra del mundo 👶🏼💖</h1>
 
   <div class="color-picker">
     <label>Aprobado <input type="color" id="color-aprobado"></label>
@@ -131,6 +131,7 @@
 
   <div class="acciones">
     <button onclick="exportarPDF()">Exportar PDF</button>
+    <button onclick="resetearMalla()">Resetear malla</button>
   </div>
 
   <div class="overlay" id="overlay"></div>
@@ -306,7 +307,18 @@
       const width = pdf.internal.pageSize.getWidth();
       const height = (canvas.height * width) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save("malla_curricular.pdf");
+      pdf.save("malla_curricular_dafne.pdf");
+    }
+
+    function resetearMalla() {
+      document.querySelectorAll(".ramo").forEach(r => {
+        localStorage.setItem(r.dataset.nombre, "nocursado");
+        localStorage.removeItem("notas_" + r.dataset.nombre);
+        r.className = "ramo nocursado";
+        r.removeAttribute("data-nota");
+      });
+      actualizarResumen();
+      aplicarColores();
     }
 
     window.onload = () => {
