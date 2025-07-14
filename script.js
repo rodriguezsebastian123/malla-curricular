@@ -1,3 +1,4 @@
+
 const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
 const colores = {
   aprobado: "✅",
@@ -62,5 +63,17 @@ function actualizarResumen() {
       if (r.classList.contains(est)) contadores[est]++;
     });
   });
-  let total = O
+  let total = Object.values(contadores).reduce((a, b) => a + b, 0);
+  document.getElementById("aprobados").textContent = contadores.aprobado;
+  document.getElementById("reprobados").textContent = contadores.reprobado;
+  document.getElementById("cursando").textContent = contadores.cursando;
+  document.getElementById("nocursado").textContent = contadores.nocursado;
+  let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
+  document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
+}
 
+window.onload = () => {
+  crearMalla();
+  cargarEstados();
+  actualizarResumen();
+};
