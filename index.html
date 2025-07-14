@@ -6,13 +6,22 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f5f9fd;
       margin: 0;
       padding: 20px;
+      background: #f5f9fd;
+      background-size: cover;
+      background-attachment: fixed;
     }
-    h1 {
+    #tituloEditable {
       text-align: center;
       color: #0078d7;
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    #tituloEditable[contenteditable]:focus {
+      outline: 2px dashed #0078d7;
+      background: #ffffffaa;
     }
     .color-picker {
       display: flex;
@@ -112,16 +121,26 @@
       font-weight: bold;
       cursor: pointer;
     }
+    #cargadorFondo {
+      text-align: center;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
-  <h1>Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
+
+  <div id="tituloEditable" contenteditable="true"></div>
 
   <div class="color-picker">
     <label>Aprobado <input type="color" id="color-aprobado"></label>
     <label>Reprobado <input type="color" id="color-reprobado"></label>
     <label>Cursando <input type="color" id="color-cursando"></label>
     <label>No cursado <input type="color" id="color-nocursado"></label>
+  </div>
+
+  <div id="cargadorFondo">
+    <label><strong>📸 Subir imagen de fondo:</strong></label>
+    <input type="file" id="fondoInput" accept="image/*" />
   </div>
 
   <div id="niveles"></div>
@@ -189,29 +208,12 @@
 
     function agregarEventosRamo(ramo) {
       ramo.onclick = cambiarEstado;
-
-      // Tap largo (700ms) para abrir modal en móvil
       let timer = null;
       ramo.addEventListener('touchstart', e => {
-        timer = setTimeout(() => {
-          abrirModal({target: ramo});
-        }, 700);
+        timer = setTimeout(() => abrirModal({target: ramo}), 700);
       });
-      ramo.addEventListener('touchend', e => {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-      ramo.addEventListener('touchmove', e => {
-        // Si mueves el dedo, cancela abrir modal para evitar conflicto
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-
-      // Para desktop conservar doble clic
+      ramo.addEventListener('touchend', e => clearTimeout(timer));
+      ramo.addEventListener('touchmove', e => clearTimeout(timer));
       ramo.ondblclick = abrirModal;
     }
 
@@ -232,9 +234,7 @@
         let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
         div.classList.add(estado);
         let nota = JSON.parse(localStorage.getItem("notas_" + div.dataset.nombre));
-        if (nota) {
-          div.setAttribute("data-nota", nota.promedio.toFixed(1));
-        }
+        if (nota) div.setAttribute("data-nota", nota.promedio.toFixed(1));
       });
     }
 
@@ -253,9 +253,7 @@
       let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
       document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
 
-      // promedio general
-      let totalNotas = 0;
-      let sumaNotas = 0;
+      let totalNotas = 0, sumaNotas = 0;
       document.querySelectorAll(".ramo").forEach(r => {
         const datos = JSON.parse(localStorage.getItem("notas_" + r.dataset.nombre));
         if (datos) {
@@ -311,9 +309,7 @@
 
     function guardarNotas() {
       const inputs = document.getElementById("inputsNotas").querySelectorAll("div");
-      let total = 0;
-      let suma = 0;
-      let notas = [];
+      let total = 0, suma = 0, notas = [];
       inputs.forEach(div => {
         const nota = parseFloat(div.children[0].value);
         const porcentaje = parseFloat(div.children[1].value);
@@ -367,11 +363,44 @@
       aplicarColores();
     }
 
+    // === FONDO PERSONALIZADO ===
+    const fondoInput = document.getElementById("fondoInput");
+    fondoInput.addEventListener("change", function () {
+      const archivo = this.files[0];
+      if (archivo) {
+        const lector = new FileReader();
+        lector.onload = function (e) {
+          const dataUrl = e.target.result;
+          document.body.style.backgroundImage = `url(${dataUrl})`;
+          localStorage.setItem("fondoDafne", dataUrl);
+        };
+        lector.readAsDataURL(archivo);
+      }
+    });
+
+    function cargarFondo() {
+      const fondo = localStorage.getItem("fondoDafne");
+      if (fondo) {
+        document.body.style.backgroundImage = `url(${fondo})`;
+      }
+    }
+
+    function cargarTituloEditable() {
+      const titulo = localStorage.getItem("tituloDafne") || "Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖";
+      const divTitulo = document.getElementById("tituloEditable");
+      divTitulo.innerText = titulo;
+      divTitulo.addEventListener("input", () => {
+        localStorage.setItem("tituloDafne", divTitulo.innerText);
+      });
+    }
+
     window.onload = () => {
       crearMalla();
       cargarEstados();
       actualizarResumen();
       cargarColores();
+      cargarFondo();
+      cargarTituloEditable();
     };
   </script>
 </body>
