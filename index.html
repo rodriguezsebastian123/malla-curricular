@@ -180,12 +180,39 @@
           ramo.className = "ramo";
           ramo.textContent = r;
           ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
-          ramo.onclick = cambiarEstado;
-          ramo.ondblclick = abrirModal;
+          agregarEventosRamo(ramo);
           nivel.appendChild(ramo);
         });
         container.appendChild(nivel);
       });
+    }
+
+    function agregarEventosRamo(ramo) {
+      ramo.onclick = cambiarEstado;
+
+      // Tap largo (700ms) para abrir modal en móvil
+      let timer = null;
+      ramo.addEventListener('touchstart', e => {
+        timer = setTimeout(() => {
+          abrirModal({target: ramo});
+        }, 700);
+      });
+      ramo.addEventListener('touchend', e => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      });
+      ramo.addEventListener('touchmove', e => {
+        // Si mueves el dedo, cancela abrir modal para evitar conflicto
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      });
+
+      // Para desktop conservar doble clic
+      ramo.ondblclick = abrirModal;
     }
 
     function cambiarEstado(e) {
