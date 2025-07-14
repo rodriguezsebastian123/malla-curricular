@@ -2,41 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Malla Curricular - Obstetricia y Puericultura</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Malla Obstetricia y Puericultura</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <h1>Malla Curricular - Obstetricia y Puericultura</h1>
 
-  <div class="controls">
-    <label for="filtroEstado">Filtrar:</label>
-    <select id="filtroEstado" onchange="filtrarRamos()">
-      <option value="todos">Todos</option>
-      <option value="aprobado">Aprobados</option>
-      <option value="reprobado">Reprobados</option>
-      <option value="no-tomado">No tomados</option>
-    </select>
-
-    <button onclick="exportarComoImagen()">Exportar como Imagen</button>
-    <label for="colorPicker">Color personalizado:</label>
-    <input type="color" id="colorPicker" value="#9E9E9E" />
+  <div class="leyenda">
+    <span class="cuadro aprobado"></span> Aprobado
+    <span class="cuadro reprobado"></span> Reprobado
+    <span class="cuadro no-tomado"></span> No tomado
   </div>
 
-  <div class="grid-container" id="malla">
-    <!-- Los ramos se generan con JS -->
+  <div class="malla-grid" id="malla">
+    <!-- Los ramos se generan dinámicamente -->
   </div>
 
-  <div class="notas-section">
-    <h3>Calculadora de Promedio</h3>
-    <div id="inputs"></div>
-    <button onclick="agregarNota()">Agregar Nota</button>
-    <button onclick="calcularPromedio()">Calcular Promedio</button>
-    <p id="promedioResultado"></p>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
-

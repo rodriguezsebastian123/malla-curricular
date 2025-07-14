@@ -1,61 +1,60 @@
 body {
   font-family: Arial, sans-serif;
-  background-color: #f7f7f7;
+  background: #f4f8fc;
   margin: 20px;
   padding: 0;
   text-align: center;
 }
 
 h1 {
-  color: #333;
+  color: #0072bb;
   margin-bottom: 20px;
 }
 
-.controls {
+.leyenda {
   margin-bottom: 20px;
+  font-size: 14px;
 }
 
-.grid-container {
+.cuadro {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin: 0 5px;
+  vertical-align: middle;
+  border-radius: 4px;
+}
+
+.aprobado {
+  background-color: #4CAF50;
+}
+.reprobado {
+  background-color: #E53935;
+}
+.no-tomado {
+  background-color: #9E9E9E;
+}
+
+.malla-grid {
   display: grid;
   grid-template-columns: repeat(10, 1fr);
   gap: 10px;
   justify-content: center;
+  max-width: 1400px;
   margin: 0 auto;
-  max-width: 1200px;
 }
 
 .ramo {
   padding: 10px;
-  border-radius: 6px;
-  cursor: pointer;
+  border-radius: 8px;
   color: white;
+  font-size: 13px;
   font-weight: bold;
-  background-color: #9e9e9e; /* por defecto: no tomado */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   transition: transform 0.2s;
-  word-wrap: break-word;
-  font-size: 14px;
+  white-space: pre-line;
 }
 
 .ramo:hover {
   transform: scale(1.05);
-}
-
-.aprobado {
-  background-color: #4CAF50 !important; /* verde */
-}
-
-.reprobado {
-  background-color: #E53935 !important; /* rojo */
-}
-
-.no-tomado {
-  background-color: #9E9E9E !important; /* gris */
-}
-
-.notas-section {
-  margin-top: 40px;
-}
-
-#inputs input {
-  margin: 5px;
 }
