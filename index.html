@@ -6,9 +6,9 @@
   <style>
     body {
       font-family: sans-serif;
-      background: #f5f9fd;
       margin: 0;
       padding: 20px;
+      transition: background 0.3s;
     }
     h1 {
       text-align: center;
@@ -33,11 +33,11 @@
       gap: 10px;
     }
     .nivel {
-      background: white;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       padding: 10px;
       width: 220px;
+      transition: background 0.3s;
     }
     .nivel h2 {
       text-align: center;
@@ -122,6 +122,8 @@
     <label>Reprobado <input type="color" id="color-reprobado"></label>
     <label>Cursando <input type="color" id="color-cursando"></label>
     <label>No cursado <input type="color" id="color-nocursado"></label>
+    <label>Color Fondo Página <input type="color" id="color-fondo-pagina"></label>
+    <label>Color Fondo Nivel <input type="color" id="color-fondo-nivel"></label>
   </div>
 
   <div id="niveles"></div>
@@ -189,29 +191,12 @@
 
     function agregarEventosRamo(ramo) {
       ramo.onclick = cambiarEstado;
-
-      // Tap largo (700ms) para abrir modal en móvil
       let timer = null;
       ramo.addEventListener('touchstart', e => {
-        timer = setTimeout(() => {
-          abrirModal({target: ramo});
-        }, 700);
+        timer = setTimeout(() => abrirModal({target: ramo}), 700);
       });
-      ramo.addEventListener('touchend', e => {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-      ramo.addEventListener('touchmove', e => {
-        // Si mueves el dedo, cancela abrir modal para evitar conflicto
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-
-      // Para desktop conservar doble clic
+      ramo.addEventListener('touchend', () => clearTimeout(timer));
+      ramo.addEventListener('touchmove', () => clearTimeout(timer));
       ramo.ondblclick = abrirModal;
     }
 
@@ -253,7 +238,6 @@
       let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
       document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
 
-      // promedio general
       let totalNotas = 0;
       let sumaNotas = 0;
       document.querySelectorAll(".ramo").forEach(r => {
@@ -274,16 +258,40 @@
           elem.style.background = color;
         });
       });
+
+      const fondoPagina = document.getElementById("color-fondo-pagina").value;
+      document.body.style.background = fondoPagina;
+      localStorage.setItem("color-fondo-pagina", fondoPagina);
+
+      const fondoNivel = document.getElementById("color-fondo-nivel").value;
+      document.querySelectorAll(".nivel").forEach(n => n.style.background = fondoNivel);
+      localStorage.setItem("color-fondo-nivel", fondoNivel);
     }
 
     function cargarColores() {
+      const coloresPorDefecto = {
+        aprobado: "#1abc9c",
+        reprobado: "#e74c3c",
+        cursando: "#3498db",
+        nocursado: "#bdc3c7",
+        "fondo-pagina": "#f5f9fd",
+        "fondo-nivel": "#ffffff"
+      };
+
       estados.forEach(estado => {
         const picker = document.getElementById("color-" + estado);
-        picker.value = localStorage.getItem("color-" + estado) || {
-          aprobado: "#1abc9c", reprobado: "#e74c3c", cursando: "#3498db", nocursado: "#bdc3c7"
-        }[estado];
+        picker.value = localStorage.getItem("color-" + estado) || coloresPorDefecto[estado];
         picker.oninput = aplicarColores;
       });
+
+      const fondoPaginaPicker = document.getElementById("color-fondo-pagina");
+      fondoPaginaPicker.value = localStorage.getItem("color-fondo-pagina") || coloresPorDefecto["fondo-pagina"];
+      fondoPaginaPicker.oninput = aplicarColores;
+
+      const fondoNivelPicker = document.getElementById("color-fondo-nivel");
+      fondoNivelPicker.value = localStorage.getItem("color-fondo-nivel") || coloresPorDefecto["fondo-nivel"];
+      fondoNivelPicker.oninput = aplicarColores;
+
       aplicarColores();
     }
 
@@ -331,13 +339,11 @@
     }
 
     function eliminarNotas() {
-      if (ramoActual) {
-        if (confirm("¿Estás seguro que deseas eliminar todas las notas de este ramo?")) {
-          localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
-          ramoActual.removeAttribute("data-nota");
-          cerrarModal();
-          actualizarResumen();
-        }
+      if (ramoActual && confirm("¿Estás seguro que deseas eliminar todas las notas de este ramo?")) {
+        localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
+        ramoActual.removeAttribute("data-nota");
+        cerrarModal();
+        actualizarResumen();
       }
     }
 
@@ -376,3 +382,4 @@
   </script>
 </body>
 </html>
+
