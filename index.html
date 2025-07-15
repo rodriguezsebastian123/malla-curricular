@@ -406,4 +406,26 @@
       const height = (canvas.height * width) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, width, height);
       pdf.save("malla_curricular_dafne.pdf");
+    }
 
+    function resetearMalla() {
+      document.querySelectorAll(".ramo").forEach(r => {
+        localStorage.setItem(r.dataset.nombre, "nocursado");
+        localStorage.removeItem("notas_" + r.dataset.nombre);
+        r.className = "ramo nocursado";
+        r.removeAttribute("data-nota");
+      });
+      actualizarResumen();
+      aplicarColores();
+    }
+
+    window.onload = () => {
+      crearMalla();
+      cargarEstados();
+      actualizarResumen();
+      cargarColores();
+      aplicarColoresExtras();
+    };
+  </script>
+</body>
+</html>
