@@ -6,15 +6,13 @@
   <style>
     body {
       font-family: sans-serif;
+      background: var(--fondo-color, #f5f9fd);
       margin: 0;
       padding: 20px;
-      transition: background 0.3s;
     }
     h1 {
       text-align: center;
-      color: #0078d7;
-      transition: color 0.3s;
-      cursor: pointer;
+      color: var(--titulo-color, #0078d7);
     }
     .color-picker {
       display: flex;
@@ -35,11 +33,11 @@
       gap: 10px;
     }
     .nivel {
+      background: var(--nivel-color, white);
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       padding: 10px;
       width: 220px;
-      transition: background 0.3s;
     }
     .nivel h2 {
       text-align: center;
@@ -49,7 +47,6 @@
       color: white;
       padding: 5px 0;
       border-radius: 4px;
-      cursor: pointer;
     }
     .ramo {
       margin: 5px 0;
@@ -80,6 +77,35 @@
     .resumen strong {
       font-size: 16px;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 20%;
+      left: 50%;
+      transform: translate(-50%, 0);
+      background: white;
+      border: 1px solid #ccc;
+      padding: 20px;
+      z-index: 10;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      max-width: 300px;
+      width: 90%;
+    }
+    .modal input[type="number"], .modal input[type="color"] {
+      width: 48%;
+      margin: 5px 1%;
+      box-sizing: border-box;
+      padding: 6px;
+    }
+    .overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      z-index: 5;
+    }
     button {
       padding: 8px 12px;
       margin: 10px 5px 5px 5px;
@@ -88,8 +114,8 @@
     }
   </style>
 </head>
-<body>
-  <h1>Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
+<body ondblclick="cambiarColorFondo()">
+  <h1 ondblclick="cambiarColorTitulo(this)">Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
 
   <div class="color-picker">
     <label>Aprobado <input type="color" id="color-aprobado"></label>
@@ -110,172 +136,59 @@
   </div>
 
   <div class="acciones">
+    <button onclick="exportarPDF()">Exportar PDF</button>
     <button onclick="resetearMalla()">Resetear malla</button>
   </div>
 
-  <!-- Input oculto para ruedas de color dinámicas -->
-  <input type="color" id="colorPickerHidden" style="position:absolute; left:-9999px;">
+  <input type="color" id="color-picker-temp" style="display:none" />
 
   <script>
-    const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
-    const malla = [
-      { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
-      { nivel: 2, ramos: ["Fundamentos Biológicos I", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
-      { nivel: 3, ramos: ["Fundamentos Biológicos II", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
-      { nivel: 4, ramos: ["Fundamentos Biológicos III", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud, Control Prenatal y Salud Pública"] },
-      { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
-      { nivel: 6, ramos: ["Salud Sexual, Planificación Familiar", "Módulo Gestión en Matronería II"] },
-      { nivel: 7, ramos: ["Obstetricia Preventiva I", "Módulo Gestión en Matronería III"] },
-      { nivel: 8, ramos: ["Obstetricia Preventiva II", "Seminario Proyecto de Gestión o Investigación"] },
-      { nivel: 9, ramos: ["Práctica Profesional Controlada I"] },
-      { nivel: 10, ramos: ["Práctica Profesional Controlada II"] }
-    ];
-
-    const colorPickerHidden = document.getElementById("colorPickerHidden");
-
-    function crearMalla() {
-      const container = document.getElementById("niveles");
-      container.innerHTML = "";
-      malla.forEach(n => {
-        const nivel = document.createElement("div");
-        nivel.className = "nivel";
-        nivel.innerHTML = `<h2>Nivel ${n.nivel}</h2>`;
-        n.ramos.forEach(r => {
-          const ramo = document.createElement("div");
-          ramo.className = "ramo";
-          ramo.textContent = r;
-          ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
-          ramo.onclick = cambiarEstado;
-          nivel.appendChild(ramo);
-        });
-        container.appendChild(nivel);
-      });
-    }
-
-    function cambiarEstado(e) {
-      const div = e.target;
-      const nombre = div.dataset.nombre;
-      let estadoActual = localStorage.getItem(nombre) || "nocursado";
-      let index = estados.indexOf(estadoActual);
-      let nuevoEstado = estados[(index + 1) % estados.length];
-      div.className = "ramo " + nuevoEstado;
-      localStorage.setItem(nombre, nuevoEstado);
-      actualizarResumen();
-      aplicarColores();
-    }
-
-    function cargarEstados() {
-      document.querySelectorAll(".ramo").forEach(div => {
-        let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
-        div.classList.add(estado);
-      });
-    }
-
-    function actualizarResumen() {
-      let contadores = { aprobado: 0, reprobado: 0, cursando: 0, nocursado: 0 };
-      document.querySelectorAll(".ramo").forEach(r => {
-        estados.forEach(est => {
-          if (r.classList.contains(est)) contadores[est]++;
-        });
-      });
-      let total = Object.values(contadores).reduce((a, b) => a + b, 0);
-      document.getElementById("aprobados").textContent = contadores.aprobado;
-      document.getElementById("reprobados").textContent = contadores.reprobado;
-      document.getElementById("cursando").textContent = contadores.cursando;
-      document.getElementById("nocursado").textContent = contadores.nocursado;
-      let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
-      document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
-      document.getElementById("promedioGeneral").textContent = "0";
-    }
-
-    function aplicarColores() {
-      estados.forEach(estado => {
-        const color = document.getElementById("color-" + estado).value;
-        localStorage.setItem("color-" + estado, color);
-        document.querySelectorAll("." + estado).forEach(elem => {
-          elem.style.background = color;
-        });
-      });
-    }
-
-    function cargarColores() {
-      const porDefecto = {
-        aprobado: "#1abc9c",
-        reprobado: "#e74c3c",
-        cursando: "#3498db",
-        nocursado: "#bdc3c7"
+    function cambiarColorFondo() {
+      const input = document.getElementById("color-picker-temp");
+      input.oninput = () => {
+        document.body.style.setProperty('--fondo-color', input.value);
+        localStorage.setItem('fondo-color', input.value);
       };
-      estados.forEach(estado => {
-        const picker = document.getElementById("color-" + estado);
-        picker.value = localStorage.getItem("color-" + estado) || porDefecto[estado];
-        picker.oninput = aplicarColores;
-      });
-      aplicarColores();
+      input.click();
     }
 
-    function resetearMalla() {
-      document.querySelectorAll(".ramo").forEach(r => {
-        localStorage.setItem(r.dataset.nombre, "nocursado");
-        r.className = "ramo nocursado";
-      });
-      actualizarResumen();
-      aplicarColores();
+    function cambiarColorTitulo(elemento) {
+      const input = document.getElementById("color-picker-temp");
+      input.oninput = () => {
+        elemento.style.color = input.value;
+        localStorage.setItem('titulo-color', input.value);
+      };
+      input.click();
     }
 
-    function aplicarExtras() {
-      const fondo = localStorage.getItem("color-fondo-pagina");
-      if (fondo) document.body.style.background = fondo;
+    function cambiarColorNivel(nivelDiv) {
+      const input = document.getElementById("color-picker-temp");
+      input.oninput = () => {
+        nivelDiv.style.setProperty('--nivel-color', input.value);
+        nivelDiv.style.background = input.value;
+      };
+      input.click();
+    }
 
-      const colorTitulo = localStorage.getItem("color-titulo");
-      if (colorTitulo) document.querySelector("h1").style.color = colorTitulo;
-
-      document.querySelectorAll(".nivel").forEach(nivel => {
-        const h2 = nivel.querySelector("h2");
-        const colorNivel = localStorage.getItem("nivel-" + h2.textContent.trim());
-        if (colorNivel) {
-          nivel.style.background = colorNivel;
+    const observer = new MutationObserver(() => {
+      document.querySelectorAll('.nivel').forEach(nivel => {
+        if (!nivel.hasAttribute('data-listener')) {
+          const h2 = nivel.querySelector('h2');
+          if (h2) {
+            h2.ondblclick = () => cambiarColorNivel(nivel);
+            nivel.setAttribute('data-listener', 'true');
+          }
         }
       });
-    }
-
-    // Doble clic en fondo
-    document.body.addEventListener("dblclick", (e) => {
-      if (e.target === document.body) {
-        colorPickerHidden.oninput = () => {
-          document.body.style.background = colorPickerHidden.value;
-          localStorage.setItem("color-fondo-pagina", colorPickerHidden.value);
-        };
-        colorPickerHidden.click();
-      }
     });
 
-    // Doble clic en título principal
-    document.querySelector("h1").addEventListener("dblclick", () => {
-      colorPickerHidden.oninput = () => {
-        document.querySelector("h1").style.color = colorPickerHidden.value;
-        localStorage.setItem("color-titulo", colorPickerHidden.value);
-      };
-      colorPickerHidden.click();
-    });
-
-    // Doble clic en título de nivel
-    document.addEventListener("dblclick", e => {
-      if (e.target.tagName === "H2" && e.target.parentElement.classList.contains("nivel")) {
-        const nivelDiv = e.target.parentElement;
-        colorPickerHidden.oninput = () => {
-          nivelDiv.style.background = colorPickerHidden.value;
-          localStorage.setItem("nivel-" + e.target.textContent.trim(), colorPickerHidden.value);
-        };
-        colorPickerHidden.click();
-      }
-    });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     window.onload = () => {
-      crearMalla();
-      cargarEstados();
-      actualizarResumen();
-      cargarColores();
-      aplicarExtras();
+      const colorFondo = localStorage.getItem('fondo-color');
+      const colorTitulo = localStorage.getItem('titulo-color');
+      if (colorFondo) document.body.style.setProperty('--fondo-color', colorFondo);
+      if (colorTitulo) document.querySelector('h1').style.color = colorTitulo;
     };
   </script>
 </body>
