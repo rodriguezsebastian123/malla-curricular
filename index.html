@@ -13,6 +13,7 @@
     h1 {
       text-align: center;
       color: #0078d7;
+      transition: color 0.3s;
     }
     .color-picker {
       display: flex;
@@ -47,6 +48,7 @@
       color: white;
       padding: 5px 0;
       border-radius: 4px;
+      cursor: pointer;
     }
     .ramo {
       margin: 5px 0;
@@ -295,6 +297,50 @@
       aplicarColores();
     }
 
+    // NUEVO: cambiar color fondo con doble clic
+    document.body.ondblclick = () => {
+      const color = prompt("Elige un color de fondo para la página:", document.body.style.background);
+      if (color) {
+        document.body.style.background = color;
+        localStorage.setItem("color-fondo-pagina", color);
+      }
+    };
+
+    // NUEVO: cambiar color del título
+    document.querySelector("h1").ondblclick = () => {
+      const nuevoColor = prompt("Color para el texto del título:", getComputedStyle(document.querySelector("h1")).color);
+      if (nuevoColor) {
+        document.querySelector("h1").style.color = nuevoColor;
+        localStorage.setItem("color-titulo", nuevoColor);
+      }
+    };
+
+    // NUEVO: doble clic en títulos de nivel
+    document.addEventListener("dblclick", e => {
+      if (e.target.tagName === "H2" && e.target.parentElement.classList.contains("nivel")) {
+        const color = prompt("Color para el fondo de este nivel:", e.target.parentElement.style.backgroundColor || "#ffffff");
+        if (color) {
+          e.target.parentElement.style.background = color;
+          localStorage.setItem("nivel-" + e.target.textContent.trim(), color);
+        }
+      }
+    });
+
+    function aplicarColoresExtras() {
+      const colorTitulo = localStorage.getItem("color-titulo");
+      if (colorTitulo) {
+        document.querySelector("h1").style.color = colorTitulo;
+      }
+
+      document.querySelectorAll(".nivel").forEach(nivel => {
+        const h2 = nivel.querySelector("h2");
+        const colorGuardado = localStorage.getItem("nivel-" + h2.textContent.trim());
+        if (colorGuardado) {
+          nivel.style.background = colorGuardado;
+        }
+      });
+    }
+
     function abrirModal(e) {
       ramoActual = e.target;
       const overlay = document.getElementById("overlay");
@@ -339,7 +385,7 @@
     }
 
     function eliminarNotas() {
-      if (ramoActual && confirm("¿Estás seguro que deseas eliminar todas las notas de este ramo?")) {
+      if (ramoActual && confirm("¿Eliminar todas las notas de este ramo?")) {
         localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
         ramoActual.removeAttribute("data-nota");
         cerrarModal();
@@ -360,26 +406,4 @@
       const height = (canvas.height * width) / canvas.width;
       pdf.addImage(imgData, "PNG", 0, 0, width, height);
       pdf.save("malla_curricular_dafne.pdf");
-    }
-
-    function resetearMalla() {
-      document.querySelectorAll(".ramo").forEach(r => {
-        localStorage.setItem(r.dataset.nombre, "nocursado");
-        localStorage.removeItem("notas_" + r.dataset.nombre);
-        r.className = "ramo nocursado";
-        r.removeAttribute("data-nota");
-      });
-      actualizarResumen();
-      aplicarColores();
-    }
-
-    window.onload = () => {
-      crearMalla();
-      cargarEstados();
-      actualizarResumen();
-      cargarColores();
-    };
-  </script>
-</body>
-</html>
 
