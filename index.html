@@ -6,13 +6,13 @@
   <style>
     body {
       font-family: sans-serif;
-      background: var(--fondo-color, #f5f9fd);
+      background: #f5f9fd;
       margin: 0;
       padding: 20px;
     }
     h1 {
       text-align: center;
-      color: var(--titulo-color, #0078d7);
+      color: #0078d7;
     }
     .color-picker {
       display: flex;
@@ -33,7 +33,7 @@
       gap: 10px;
     }
     .nivel {
-      background: var(--nivel-color, white);
+      background: white;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
       padding: 10px;
@@ -92,7 +92,7 @@
       max-width: 300px;
       width: 90%;
     }
-    .modal input[type="number"], .modal input[type="color"] {
+    .modal input[type="number"] {
       width: 48%;
       margin: 5px 1%;
       box-sizing: border-box;
@@ -114,8 +114,8 @@
     }
   </style>
 </head>
-<body ondblclick="cambiarColorFondo()">
-  <h1 ondblclick="cambiarColorTitulo(this)">Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
+<body>
+  <h1>Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
 
   <div class="color-picker">
     <label>Aprobado <input type="color" id="color-aprobado"></label>
@@ -140,55 +140,238 @@
     <button onclick="resetearMalla()">Resetear malla</button>
   </div>
 
-  <input type="color" id="color-picker-temp" style="display:none" />
+  <div class="overlay" id="overlay" onclick="cerrarModal()"></div>
+  <div class="modal" id="modal">
+    <h3>Notas del Ramo</h3>
+    <div id="inputsNotas"></div>
+    <button onclick="agregarInputNota()">+ Agregar Nota</button>
+    <button onclick="guardarNotas()">Guardar</button>
+    <button onclick="eliminarNotas()">🗑️ Eliminar notas</button>
+  </div>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    function cambiarColorFondo() {
-      const input = document.getElementById("color-picker-temp");
-      input.oninput = () => {
-        document.body.style.setProperty('--fondo-color', input.value);
-        localStorage.setItem('fondo-color', input.value);
-      };
-      input.click();
+    const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
+    let ramoActual = null;
+
+    const malla = [
+      { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
+      { nivel: 2, ramos: ["Fundamentos Biológicos I", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
+      { nivel: 3, ramos: ["Fundamentos Biológicos II", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
+      { nivel: 4, ramos: ["Fundamentos Biológicos III", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud, Control Prenatal y Salud Pública"] },
+      { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
+      { nivel: 6, ramos: ["Salud Sexual, Planificación Familiar", "Módulo Gestión en Matronería II"] },
+      { nivel: 7, ramos: ["Obstetricia Preventiva I", "Módulo Gestión en Matronería III"] },
+      { nivel: 8, ramos: ["Obstetricia Preventiva II", "Seminario Proyecto de Gestión o Investigación"] },
+      { nivel: 9, ramos: ["Práctica Profesional Controlada I"] },
+      { nivel: 10, ramos: ["Práctica Profesional Controlada II"] }
+    ];
+
+    function crearMalla() {
+      const container = document.getElementById("niveles");
+      container.innerHTML = "";
+      malla.forEach(n => {
+        const nivel = document.createElement("div");
+        nivel.className = "nivel";
+        nivel.innerHTML = `<h2>Nivel ${n.nivel}</h2>`;
+        n.ramos.forEach(r => {
+          const ramo = document.createElement("div");
+          ramo.className = "ramo";
+          ramo.textContent = r;
+          ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
+          agregarEventosRamo(ramo);
+          nivel.appendChild(ramo);
+        });
+        container.appendChild(nivel);
+      });
     }
 
-    function cambiarColorTitulo(elemento) {
-      const input = document.getElementById("color-picker-temp");
-      input.oninput = () => {
-        elemento.style.color = input.value;
-        localStorage.setItem('titulo-color', input.value);
-      };
-      input.click();
-    }
+    function agregarEventosRamo(ramo) {
+      ramo.onclick = cambiarEstado;
 
-    function cambiarColorNivel(nivelDiv) {
-      const input = document.getElementById("color-picker-temp");
-      input.oninput = () => {
-        nivelDiv.style.setProperty('--nivel-color', input.value);
-        nivelDiv.style.background = input.value;
-      };
-      input.click();
-    }
-
-    const observer = new MutationObserver(() => {
-      document.querySelectorAll('.nivel').forEach(nivel => {
-        if (!nivel.hasAttribute('data-listener')) {
-          const h2 = nivel.querySelector('h2');
-          if (h2) {
-            h2.ondblclick = () => cambiarColorNivel(nivel);
-            nivel.setAttribute('data-listener', 'true');
-          }
+      // Tap largo (700ms) para abrir modal en móvil
+      let timer = null;
+      ramo.addEventListener('touchstart', e => {
+        timer = setTimeout(() => {
+          abrirModal({target: ramo});
+        }, 700);
+      });
+      ramo.addEventListener('touchend', e => {
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
         }
       });
-    });
+      ramo.addEventListener('touchmove', e => {
+        // Si mueves el dedo, cancela abrir modal para evitar conflicto
+        if (timer) {
+          clearTimeout(timer);
+          timer = null;
+        }
+      });
 
-    observer.observe(document.body, { childList: true, subtree: true });
+      // Para desktop conservar doble clic
+      ramo.ondblclick = abrirModal;
+    }
+
+    function cambiarEstado(e) {
+      const div = e.target;
+      const nombre = div.dataset.nombre;
+      let estadoActual = localStorage.getItem(nombre) || "nocursado";
+      let index = estados.indexOf(estadoActual);
+      let nuevoEstado = estados[(index + 1) % estados.length];
+      div.className = "ramo " + nuevoEstado;
+      localStorage.setItem(nombre, nuevoEstado);
+      actualizarResumen();
+      aplicarColores();
+    }
+
+    function cargarEstados() {
+      document.querySelectorAll(".ramo").forEach(div => {
+        let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
+        div.classList.add(estado);
+        let nota = JSON.parse(localStorage.getItem("notas_" + div.dataset.nombre));
+        if (nota) {
+          div.setAttribute("data-nota", nota.promedio.toFixed(1));
+        }
+      });
+    }
+
+    function actualizarResumen() {
+      let contadores = { aprobado: 0, reprobado: 0, cursando: 0, nocursado: 0 };
+      document.querySelectorAll(".ramo").forEach(r => {
+        estados.forEach(est => {
+          if (r.classList.contains(est)) contadores[est]++;
+        });
+      });
+      let total = Object.values(contadores).reduce((a, b) => a + b, 0);
+      document.getElementById("aprobados").textContent = contadores.aprobado;
+      document.getElementById("reprobados").textContent = contadores.reprobado;
+      document.getElementById("cursando").textContent = contadores.cursando;
+      document.getElementById("nocursado").textContent = contadores.nocursado;
+      let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
+      document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
+
+      // promedio general
+      let totalNotas = 0;
+      let sumaNotas = 0;
+      document.querySelectorAll(".ramo").forEach(r => {
+        const datos = JSON.parse(localStorage.getItem("notas_" + r.dataset.nombre));
+        if (datos) {
+          sumaNotas += datos.promedio;
+          totalNotas++;
+        }
+      });
+      document.getElementById("promedioGeneral").textContent = totalNotas ? (sumaNotas / totalNotas).toFixed(1) : "0";
+    }
+
+    function aplicarColores() {
+      estados.forEach(estado => {
+        const color = document.getElementById("color-" + estado).value;
+        localStorage.setItem("color-" + estado, color);
+        document.querySelectorAll("." + estado).forEach(elem => {
+          elem.style.background = color;
+        });
+      });
+    }
+
+    function cargarColores() {
+      estados.forEach(estado => {
+        const picker = document.getElementById("color-" + estado);
+        picker.value = localStorage.getItem("color-" + estado) || {
+          aprobado: "#1abc9c", reprobado: "#e74c3c", cursando: "#3498db", nocursado: "#bdc3c7"
+        }[estado];
+        picker.oninput = aplicarColores;
+      });
+      aplicarColores();
+    }
+
+    function abrirModal(e) {
+      ramoActual = e.target;
+      const overlay = document.getElementById("overlay");
+      const modal = document.getElementById("modal");
+      const contenedor = document.getElementById("inputsNotas");
+      contenedor.innerHTML = "";
+      let datos = JSON.parse(localStorage.getItem("notas_" + ramoActual.dataset.nombre)) || { notas: [], promedio: 0 };
+      datos.notas.forEach(nota => {
+        const div = document.createElement("div");
+        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}" min="0" max="100" step="0.1"> <input type="number" placeholder="%" value="${nota.porcentaje}" min="0" max="100" step="0.1">`;
+        contenedor.appendChild(div);
+      });
+      overlay.style.display = "block";
+      modal.style.display = "block";
+    }
+
+    function agregarInputNota() {
+      const div = document.createElement("div");
+      div.innerHTML = `<input type="number" placeholder="Nota" min="0" max="100" step="0.1"> <input type="number" placeholder="%" min="0" max="100" step="0.1">`;
+      document.getElementById("inputsNotas").appendChild(div);
+    }
+
+    function guardarNotas() {
+      const inputs = document.getElementById("inputsNotas").querySelectorAll("div");
+      let total = 0;
+      let suma = 0;
+      let notas = [];
+      inputs.forEach(div => {
+        const nota = parseFloat(div.children[0].value);
+        const porcentaje = parseFloat(div.children[1].value);
+        if (!isNaN(nota) && !isNaN(porcentaje)) {
+          suma += nota * (porcentaje / 100);
+          total += porcentaje;
+          notas.push({ nota, porcentaje });
+        }
+      });
+      let promedio = total ? suma : 0;
+      localStorage.setItem("notas_" + ramoActual.dataset.nombre, JSON.stringify({ notas, promedio }));
+      ramoActual.setAttribute("data-nota", promedio.toFixed(1));
+      cerrarModal();
+      actualizarResumen();
+    }
+
+    function eliminarNotas() {
+      if (ramoActual) {
+        if (confirm("¿Estás seguro que deseas eliminar todas las notas de este ramo?")) {
+          localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
+          ramoActual.removeAttribute("data-nota");
+          cerrarModal();
+          actualizarResumen();
+        }
+      }
+    }
+
+    function cerrarModal() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    async function exportarPDF() {
+      const canvas = await html2canvas(document.body);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF("p", "mm", "a4");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, width, height);
+      pdf.save("malla_curricular_dafne.pdf");
+    }
+
+    function resetearMalla() {
+      document.querySelectorAll(".ramo").forEach(r => {
+        localStorage.setItem(r.dataset.nombre, "nocursado");
+        localStorage.removeItem("notas_" + r.dataset.nombre);
+        r.className = "ramo nocursado";
+        r.removeAttribute("data-nota");
+      });
+      actualizarResumen();
+      aplicarColores();
+    }
 
     window.onload = () => {
-      const colorFondo = localStorage.getItem('fondo-color');
-      const colorTitulo = localStorage.getItem('titulo-color');
-      if (colorFondo) document.body.style.setProperty('--fondo-color', colorFondo);
-      if (colorTitulo) document.querySelector('h1').style.color = colorTitulo;
+      crearMalla();
+      cargarEstados();
+      actualizarResumen();
+      cargarColores();
     };
   </script>
 </body>
