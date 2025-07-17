@@ -2,487 +2,246 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Malla Curricular de Dafne</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Horario</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f5f9fd;
+      font-family: Arial, sans-serif;
+      background-color: #f5f9fd;
       margin: 0;
       padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     h1 {
-      text-align: center;
-      color: #0078d7;
-      user-select: none;
-      cursor: pointer;
-    }
-    .color-picker {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
+      color: #1f3c88; /* Será reemplazado con JS */
       margin-bottom: 20px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .color-picker label {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 14px;
       user-select: none;
     }
-    #niveles {
+    .contenedor-columnas {
       display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
       gap: 10px;
-    }
-    .nivel {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      padding: 10px;
-      width: 220px;
-      transition: background 0.3s ease;
-      cursor: pointer;
-      user-select: none;
-    }
-    .nivel h2 {
-      text-align: center;
-      font-size: 16px;
-      margin-bottom: 10px;
-      background: #0078d7;
-      color: white;
-      padding: 5px 0;
-      border-radius: 4px;
-      user-select: none;
-      cursor: pointer; /* Indicar que se puede clicear */
-    }
-    .ramo {
-      margin: 5px 0;
-      padding: 6px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 13px;
-      text-align: center;
-      position: relative;
-      user-select: none;
-    }
-
-    .resumen, .acciones {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .resumen p {
-      font-size: 15px;
-      margin: 5px;
-    }
-    .resumen strong {
-      font-size: 16px;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      top: 20%;
-      left: 50%;
-      transform: translate(-50%, 0);
-      background: white;
-      border: 1px solid #ccc;
-      padding: 20px;
-      z-index: 10;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      max-width: 300px;
       width: 90%;
+      max-width: 1000px;
     }
-    .modal input[type="number"] {
-      width: 48%;
-      margin: 5px 1%;
-      box-sizing: border-box;
-      padding: 6px;
+    .columna {
+      background-color: #e2ecf7;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 5px;
     }
-    .overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5);
-      display: none;
-      z-index: 5;
-    }
-    button {
-      padding: 8px 12px;
-      margin: 10px 5px 5px 5px;
+    .titulo-columna {
+      color: white;
       font-weight: bold;
+      padding: 8px 4px;
+      width: 100%;
+      text-align: center;
+      user-select: none;
+      border-radius: 4px 4px 0 0;
+      margin-bottom: 5px;
+    }
+    .celdas {
+      flex-grow: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      min-height: 150px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 5px;
+      border-radius: 4px;
+      /* Aquí cambiaremos el fondo con JS */
+    }
+    .celda {
+      background-color: #ffffff; /* Fijo blanco para cada celda */
+      border: 1px solid #aaa;
+      border-radius: 4px;
+      padding: 6px;
+      min-height: 30px;
+      text-align: center;
+      user-select: text;
+      outline: none;
+      resize: vertical;
+      overflow-wrap: break-word;
+      color: #000;
+    }
+    .botones-columna {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      width: 100%;
+    }
+    .boton-agregar, .boton-quitar {
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      user-select: none;
+      font-size: 16px;
+      width: 40px;
+      height: 32px;
+      line-height: 32px;
+      text-align: center;
+      transition: background-color 0.3s ease;
+    }
+    .boton-agregar:hover, .boton-quitar:hover {
+      opacity: 0.85;
+    }
+    .botones-navegacion {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+    }
+    .boton-volver, .boton-calendario {
+      padding: 10px 20px;
+      background-color: var(--color-semestre, #0078d7);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      user-select: none;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <h1 id="titulo-principal" title="Doble clic para cambiar color">Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
+  <h1 id="titulo-horario">Horario</h1>
 
-  <div class="color-picker">
-    <label>Aprobado <input type="color" id="color-aprobado"></label>
-    <label>Reprobado <input type="color" id="color-reprobado"></label>
-    <label>Cursando <input type="color" id="color-cursando"></label>
-    <label>No cursado <input type="color" id="color-nocursado"></label>
+  <div class="contenedor-columnas">
+    <div class="columna" id="col-0">
+      <div class="titulo-columna">Hora</div>
+      <div class="celdas" id="celdas-0">
+        <div class="celda" contenteditable="true">08:00 - 09:00</div>
+      </div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(0)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(0)">−</button>
+      </div>
+    </div>
+
+    <div class="columna" id="col-1">
+      <div class="titulo-columna">Lunes</div>
+      <div class="celdas" id="celdas-1"></div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(1)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(1)">−</button>
+      </div>
+    </div>
+
+    <div class="columna" id="col-2">
+      <div class="titulo-columna">Martes</div>
+      <div class="celdas" id="celdas-2"></div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(2)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(2)">−</button>
+      </div>
+    </div>
+
+    <div class="columna" id="col-3">
+      <div class="titulo-columna">Miércoles</div>
+      <div class="celdas" id="celdas-3"></div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(3)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(3)">−</button>
+      </div>
+    </div>
+
+    <div class="columna" id="col-4">
+      <div class="titulo-columna">Jueves</div>
+      <div class="celdas" id="celdas-4"></div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(4)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(4)">−</button>
+      </div>
+    </div>
+
+    <div class="columna" id="col-5">
+      <div class="titulo-columna">Viernes</div>
+      <div class="celdas" id="celdas-5"></div>
+      <div class="botones-columna">
+        <button class="boton-agregar" onclick="agregarCelda(5)">+</button>
+        <button class="boton-quitar" onclick="quitarCelda(5)">−</button>
+      </div>
+    </div>
   </div>
 
-  <div id="niveles"></div>
-
-  <div class="resumen">
-    <p>Aprobados: <span id="aprobados">0</span></p>
-    <p>Reprobados: <span id="reprobados">0</span></p>
-    <p>Cursando: <span id="cursando">0</span></p>
-    <p>No cursado: <span id="nocursado">0</span></p>
-    <p><strong>Avance total:</strong> <span id="avance">0%</span></p>
-    <p><strong>Promedio general:</strong> <span id="promedioGeneral">0</span></p>
+  <div class="botones-navegacion">
+    <button class="boton-volver" onclick="window.location.href='malla.html'">Ir a la Malla</button>
+    <button class="boton-calendario" onclick="window.location.href='calendario.html'">Ir al Calendario</button>
   </div>
 
-  <div class="acciones">
-    <button onclick="exportarPDF()">Exportar PDF</button>
-    <button onclick="resetearMalla()">Resetear malla</button>
-    <button onclick="window.location.href='calendario.html'">Calendario</button>
-  </div>
-
-  <div class="overlay" id="overlay" onclick="cerrarModal()"></div>
-  <div class="modal" id="modal">
-    <h3>Notas del Ramo</h3>
-    <div id="inputsNotas"></div>
-    <button onclick="agregarInputNota()">+ Agregar Nota</button>
-    <button onclick="guardarNotas()">Guardar</button>
-    <button onclick="eliminarNotas()">🗑️ Eliminar notas</button>
-  </div>
-
-  <!-- Inputs ocultos para selectores de color -->
-  <input type="color" id="color-fondo-niveles" style="display:none;">
-  <input type="color" id="bgColorPicker" style="display:none;">
-  <input type="color" id="color-titulo" style="display:none;">
-  <input type="color" id="color-semestre" style="display:none;">
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const estados = ["aprobado", "reprobado", "cursando", "nocursado"];
-    let ramoActual = null;
-
-    const malla = [
-      { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
-      { nivel: 2, ramos: ["Fundamentos Biológicos I", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
-      { nivel: 3, ramos: ["Fundamentos Biológicos II", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
-      { nivel: 4, ramos: ["Fundamentos Biológicos III", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud, Control Prenatal y Salud Pública"] },
-      { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
-      { nivel: 6, ramos: ["Salud Sexual, Planificación Familiar", "Módulo Gestión en Matronería II"] },
-      { nivel: 7, ramos: ["Obstetricia Preventiva I", "Módulo Gestión en Matronería III"] },
-      { nivel: 8, ramos: ["Obstetricia Preventiva II", "Seminario Proyecto de Gestión o Investigación"] },
-      { nivel: 9, ramos: ["Práctica Profesional Controlada I"] },
-      { nivel: 10, ramos: ["Práctica Profesional Controlada II"] }
-    ];
-
-    function crearMalla() {
-      const container = document.getElementById("niveles");
-      container.innerHTML = "";
-      malla.forEach(n => {
-        const nivel = document.createElement("div");
-        nivel.className = "nivel";
-        nivel.dataset.nivel = n.nivel;
-        nivel.innerHTML = `<h2 data-nivel="${n.nivel}">Semestre ${n.nivel}</h2>`;
-        n.ramos.forEach(r => {
-          const ramo = document.createElement("div");
-          ramo.className = "ramo";
-          ramo.textContent = r;
-          ramo.dataset.nombre = `nivel${n.nivel}-${r}`;
-          agregarEventosRamo(ramo);
-          nivel.appendChild(ramo);
-        });
-        container.appendChild(nivel);
-      });
-
-      const colorGuardado = localStorage.getItem("color-fondo-niveles") || "#ffffff";
-      aplicarColorFondoNiveles(colorGuardado);
-      aplicarColorSemestre(localStorage.getItem("color-semestre") || "#0078d7");
-
-      const colorTituloGuardado = localStorage.getItem("color-titulo") || "#0078d7";
-      const titulo = document.getElementById("titulo-principal");
-      titulo.style.color = colorTituloGuardado;
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.style.color = colorTituloGuardado;
-      });
-
-      document.querySelectorAll(".nivel").forEach(nivelDiv => {
-        nivelDiv.addEventListener("dblclick", (e) => {
-          if (e.target.classList.contains("ramo") || e.target.tagName === "H2") return;
-          const colorPicker = document.getElementById("color-fondo-niveles");
-          colorPicker.value = localStorage.getItem("color-fondo-niveles") || "#ffffff";
-          colorPicker.click();
-        });
-      });
-
-      titulo.addEventListener("dblclick", () => {
-        const colorTituloPicker = document.getElementById("color-titulo");
-        colorTituloPicker.value = localStorage.getItem("color-titulo") || "#0078d7";
-        colorTituloPicker.click();
-      });
-
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.addEventListener("dblclick", () => {
-          const colorSemestrePicker = document.getElementById("color-semestre");
-          colorSemestrePicker.value = localStorage.getItem("color-semestre") || "#0078d7";
-          colorSemestrePicker.click();
-        });
-      });
-    }
-
-    function agregarEventosRamo(ramo) {
-      ramo.onclick = cambiarEstado;
-
-      let timer = null;
-      ramo.addEventListener('touchstart', e => {
-        timer = setTimeout(() => {
-          abrirModal({target: ramo});
-        }, 700);
-      });
-      ramo.addEventListener('touchend', e => {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-      ramo.addEventListener('touchmove', e => {
-        if (timer) {
-          clearTimeout(timer);
-          timer = null;
-        }
-      });
-
-      ramo.ondblclick = abrirModal;
-    }
-
-    function cambiarEstado(e) {
-      const div = e.target;
-      const nombre = div.dataset.nombre;
-      let estadoActual = localStorage.getItem(nombre) || "nocursado";
-      let index = estados.indexOf(estadoActual);
-      let nuevoEstado = estados[(index + 1) % estados.length];
-      div.className = "ramo " + nuevoEstado;
-      localStorage.setItem(nombre, nuevoEstado);
-      actualizarResumen();
-      aplicarColores();
-    }
-
-    function cargarEstados() {
-      document.querySelectorAll(".ramo").forEach(div => {
-        let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
-        div.classList.add(estado);
-      });
-    }
-
-    function actualizarResumen() {
-      let contadores = { aprobado: 0, reprobado: 0, cursando: 0, nocursado: 0 };
-      document.querySelectorAll(".ramo").forEach(r => {
-        estados.forEach(est => {
-          if (r.classList.contains(est)) contadores[est]++;
-        });
-      });
-      let total = Object.values(contadores).reduce((a, b) => a + b, 0);
-      document.getElementById("aprobados").textContent = contadores.aprobado;
-      document.getElementById("reprobados").textContent = contadores.reprobado;
-      document.getElementById("cursando").textContent = contadores.cursando;
-      document.getElementById("nocursado").textContent = contadores.nocursado;
-      let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
-      document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
-
-      let totalNotas = 0;
-      let sumaNotas = 0;
-      document.querySelectorAll(".ramo").forEach(r => {
-        const datos = JSON.parse(localStorage.getItem("notas_" + r.dataset.nombre));
-        if (datos) {
-          sumaNotas += datos.promedio;
-          totalNotas++;
-        }
-      });
-      document.getElementById("promedioGeneral").textContent = totalNotas ? (sumaNotas / totalNotas).toFixed(1) : "0";
-    }
-
-    function aplicarColores() {
-      estados.forEach(estado => {
-        const color = document.getElementById("color-" + estado).value;
-        localStorage.setItem("color-" + estado, color);
-        document.querySelectorAll("." + estado).forEach(elem => {
-          elem.style.background = color;
-        });
-      });
-    }
-
-    function cargarColores() {
-      estados.forEach(estado => {
-        const picker = document.getElementById("color-" + estado);
-        picker.value = localStorage.getItem("color-" + estado) || {
-          aprobado: "#1abc9c", reprobado: "#e74c3c", cursando: "#3498db", nocursado: "#bdc3c7"
-        }[estado];
-        picker.oninput = aplicarColores;
-      });
-      aplicarColores();
-
-      const colorTitulo = localStorage.getItem("color-titulo") || "#0078d7";
-      const tituloElem = document.getElementById("titulo-principal");
-      tituloElem.style.color = colorTitulo;
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.style.color = colorTitulo;
-      });
-
-      const tituloColorInput = document.getElementById("color-titulo");
-      tituloColorInput.addEventListener("input", (e) => {
-        const color = e.target.value;
-        tituloElem.style.color = color;
-        document.querySelectorAll(".nivel h2").forEach(h2 => {
-          h2.style.color = color;
-        });
-        localStorage.setItem("color-titulo", color);
-      });
-
-      const semestreColorInput = document.getElementById("color-semestre");
-      semestreColorInput.addEventListener("input", (e) => {
-        const color = e.target.value;
-        aplicarColorSemestre(color);
-        localStorage.setItem("color-semestre", color);
-      });
-    }
-
-    const colorFondoNiveles = document.getElementById("color-fondo-niveles");
-    colorFondoNiveles.addEventListener("input", (e) => {
-      const color = e.target.value;
-      localStorage.setItem("color-fondo-niveles", color);
-      aplicarColorFondoNiveles(color);
-    });
-
-    function aplicarColorFondoNiveles(color) {
-      document.querySelectorAll(".nivel").forEach(nivelDiv => {
-        nivelDiv.style.background = color;
-      });
-    }
-
-    function aplicarColorSemestre(color) {
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.style.background = color;
-      });
-    }
-
-    function abrirModal(e) {
-      ramoActual = e.target;
-      const overlay = document.getElementById("overlay");
-      const modal = document.getElementById("modal");
-      const contenedor = document.getElementById("inputsNotas");
-      contenedor.innerHTML = "";
-      let datos = JSON.parse(localStorage.getItem("notas_" + ramoActual.dataset.nombre)) || { notas: [], promedio: 0 };
-      datos.notas.forEach(nota => {
-        const div = document.createElement("div");
-        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}" min="0" max="100" step="0.1"> <input type="number" placeholder="%" value="${nota.porcentaje}" min="0" max="100" step="0.1">`;
-        contenedor.appendChild(div);
-      });
-      overlay.style.display = "block";
-      modal.style.display = "block";
-    }
-
-    function agregarInputNota() {
-      const div = document.createElement("div");
-      div.innerHTML = `<input type="number" placeholder="Nota" min="0" max="100" step="0.1"> <input type="number" placeholder="%" min="0" max="100" step="0.1">`;
-      document.getElementById("inputsNotas").appendChild(div);
-    }
-
-    function guardarNotas() {
-      const inputs = document.querySelectorAll("#inputsNotas div");
-      let notas = [];
-      let sumaPorcentaje = 0;
-      let sumaPonderada = 0;
-      for (let div of inputs) {
-        let notaInput = div.children[0];
-        let porcentajeInput = div.children[1];
-        let nota = parseFloat(notaInput.value);
-        let porcentaje = parseFloat(porcentajeInput.value);
-        if (isNaN(nota) || isNaN(porcentaje) || porcentaje <= 0) continue;
-        notas.push({ nota, porcentaje });
-        sumaPorcentaje += porcentaje;
-        sumaPonderada += nota * porcentaje;
+    function agregarCelda(col) {
+      const contenedor = document.getElementById(`celdas-${col}`);
+      const nuevaCelda = document.createElement('div');
+      nuevaCelda.className = 'celda';
+      nuevaCelda.contentEditable = true;
+      if (col === 0 && contenedor.children.length === 0) {
+        nuevaCelda.textContent = 'Nueva hora';
       }
-      let promedio = sumaPorcentaje ? sumaPonderada / sumaPorcentaje : 0;
-      localStorage.setItem("notas_" + ramoActual.dataset.nombre, JSON.stringify({ notas, promedio }));
-      cerrarModal();
-      actualizarResumen();
+      contenedor.appendChild(nuevaCelda);
+      nuevaCelda.focus();
     }
 
-    function eliminarNotas() {
-      localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
-      cerrarModal();
-      actualizarResumen();
+    function quitarCelda(col) {
+      const contenedor = document.getElementById(`celdas-${col}`);
+      if (contenedor.children.length === 0) {
+        alert('No hay más celdas para eliminar en esta columna.');
+        return;
+      }
+      contenedor.removeChild(contenedor.lastElementChild);
     }
 
-    function cerrarModal() {
-      document.getElementById("overlay").style.display = "none";
-      document.getElementById("modal").style.display = "none";
-      ramoActual = null;
-    }
+    function sincronizarColores() {
+      // Color título
+      const colorTitulo = localStorage.getItem("color-titulo") || "#1f3c88";
+      document.getElementById("titulo-horario").style.color = colorTitulo;
 
-    function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      doc.setFontSize(18);
-      doc.text("Malla Curricular de Dafne", 10, 10);
-
-      let y = 20;
-      malla.forEach(n => {
-        doc.setFontSize(14);
-        doc.text("Semestre " + n.nivel, 10, y);
-        y += 8;
-        n.ramos.forEach(r => {
-          const estado = localStorage.getItem(`nivel${n.nivel}-${r}`) || "nocursado";
-          const notas = JSON.parse(localStorage.getItem("notas_" + `nivel${n.nivel}-${r}`));
-          let textoEstado = "";
-          switch (estado) {
-            case "aprobado": textoEstado = "✅ Aprobado"; break;
-            case "reprobado": textoEstado = "❌ Reprobado"; break;
-            case "cursando": textoEstado = "🕒 Cursando"; break;
-            default: textoEstado = "⏸️ No cursado";
-          }
-          let promedio = notas ? notas.promedio.toFixed(1) : "-";
-          let linea = `${r} — ${textoEstado} — Promedio: ${promedio}`;
-          doc.setFontSize(12);
-          doc.text(linea, 12, y);
-          y += 7;
-          if (y > 280) {
-            doc.addPage();
-            y = 20;
-          }
-        });
-        y += 5;
+      // Fondo y texto de títulos de columnas (días + hora)
+      const colorSemestre = localStorage.getItem("color-semestre") || "#0078d7";
+      document.querySelectorAll(".titulo-columna").forEach(titulo => {
+        titulo.style.backgroundColor = colorSemestre;
+        titulo.style.color = "#fff";
       });
 
-      doc.save("malla_dafne.pdf");
-    }
+      // Botones agregar y quitar
+      document.querySelectorAll(".boton-agregar").forEach(boton => {
+        boton.style.backgroundColor = colorSemestre;
+      });
+      document.querySelectorAll(".boton-quitar").forEach(boton => {
+        boton.style.backgroundColor = colorSemestre;
+      });
 
-    function resetearMalla() {
-      if (!confirm("¿Seguro que quieres resetear todo? Perderás tus datos.")) return;
-      estados.forEach(est => {
-        document.querySelectorAll("." + est).forEach(elem => {
-          elem.classList.remove(est);
-        });
+      // Botones de navegación
+      document.querySelectorAll(".boton-volver, .boton-calendario").forEach(boton => {
+        boton.style.backgroundColor = colorSemestre;
       });
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith("nivel") || key.startsWith("notas_")) {
-          localStorage.removeItem(key);
-        }
+
+      // Fondo de los contenedores de celdas (color-fondo-niveles)
+      const colorFondoRamos = localStorage.getItem("color-fondo-niveles") || "#ffffff";
+      document.querySelectorAll(".celdas").forEach(contenedor => {
+        contenedor.style.backgroundColor = colorFondoRamos;
       });
-      crearMalla();
-      cargarColores();
-      actualizarResumen();
+
+      // Celdas individuales siempre fondo blanco
+      document.querySelectorAll(".celda").forEach(celda => {
+        celda.style.backgroundColor = "#ffffff";
+        celda.style.color = "#000";
+      });
     }
 
     window.onload = () => {
-      crearMalla();
-      cargarEstados();
-      cargarColores();
-      actualizarResumen();
-      aplicarColores();
+      sincronizarColores();
     };
   </script>
 </body>
