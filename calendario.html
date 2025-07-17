@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendario</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f5f9fd;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .titulo-calendario {
+      font-size: 2rem;
+      color: var(--color-titulo);
+      margin: 20px 0 10px;
+    }
+
+    .boton-volver {
+      margin-bottom: 20px;
+      padding: 10px 20px;
+      background-color: var(--color-semestre);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .calendario-container {
+      display: flex;
+      flex-direction: row;
+      gap: 20px;
+    }
+
+    .calendario {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      max-width: 700px;
+    }
+
+    .dia-semana, .dia {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      border-radius: 5px;
+    }
+
+    .dia-semana {
+      background-color: var(--color-semestre);
+      font-weight: bold;
+      color: white;
+    }
+
+    .dia {
+      background-color: var(--color-ramos);
+      cursor: pointer;
+    }
+
+    .nota-marco {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 300px;
+    }
+
+    .fechas-notas, .contenido-nota {
+      background: white;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .fecha-item {
+      cursor: pointer;
+      padding: 5px;
+      border-bottom: 1px solid #ccc;
+    }
+
+    .nota-texto {
+      white-space: pre-line;
+      margin-top: 10px;
+    }
+
+    .boton-borrar {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1 class="titulo-calendario">Calendario</h1>
+  <a href="index.html" class="boton-volver">Volver a la Malla</a>
+  <div class="calendario-container">
+    <div>
+      <div class="calendario" id="calendario"></div>
+    </div>
+    <div class="nota-marco">
+      <div class="fechas-notas" id="fechasNotas">
+        <strong style="color: var(--color-titulo)">Fechas con Notas</strong>
+        <div id="listaFechas"></div>
+      </div>
+      <div class="contenido-nota">
+        <strong style="color: var(--color-titulo)">Nota</strong>
+        <div id="notaTexto" class="nota-texto">Selecciona una fecha</div>
+        <button id="borrarNotaBtn" class="boton-borrar" style="display:none">Borrar Nota</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const calendarioEl = document.getElementById("calendario");
+    const listaFechasEl = document.getElementById("listaFechas");
+    const notaTextoEl = document.getElementById("notaTexto");
+    const borrarNotaBtn = document.getElementById("borrarNotaBtn");
+    let fechaSeleccionada = null;
+
+    function obtenerColores() {
+      document.documentElement.style.setProperty('--color-titulo', localStorage.getItem('color-titulo') || '#1f3c88');
+      document.documentElement.style.setProperty('--color-semestre', localStorage.getItem('color-semestre') || '#0078d7');
+      document.documentElement.style.setProperty('--color-ramos', localStorage.getItem('color-fondo-niveles') || '#e2ecf7');
+    }
+
+    function renderizarCalendario() {
+      calendarioEl.innerHTML = "";
+      diasSemana.forEach(d => {
+        const div = document.createElement("div");
+        div.textContent = d;
+        div.classList.add("dia-semana");
+        calendarioEl.appendChild(div);
+      });
+
+      const hoy = new Date();
+      const year = hoy.getFullYear();
+      const mes = hoy.getMonth();
+      const primerDia = new Date(year, mes, 1);
+      const primerDiaSemana = primerDia.getDay();
+      const diasEnMes = new Date(year, mes + 1, 0).getDate();
+
+      for (let i = 0; i < primerDiaSemana; i++) {
+        calendarioEl.appendChild(document.createElement("div"));
+      }
+
+      for (let d = 1; d <= diasEnMes; d++) {
+        const fechaStr = `${year}-${mes + 1}-${d}`;
+        const div = document.createElement("div");
+        div.classList.add("dia");
+        div.textContent = d;
+        div.onclick = () => anotarNota(fechaStr);
+        calendarioEl.appendChild(div);
+      }
+    }
+
+    function anotarNota(fecha) {
+      const nota = prompt(`Escribe una nota para ${fecha}`);
+      if (!nota) return;
+      localStorage.setItem("nota-" + fecha, nota);
+      actualizarFechasNotas();
+    }
+
+    function actualizarFechasNotas() {
+      listaFechasEl.innerHTML = "";
+      for (let i = 0; i < localStorage.length; i++) {
+        const clave = localStorage.key(i);
+        if (clave.startsWith("nota-")) {
+          const fecha = clave.replace("nota-", "");
+          const div = document.createElement("div");
+          div.classList.add("fecha-item");
+          div.textContent = fecha;
+          div.onclick = () => mostrarNota(fecha);
+          listaFechasEl.appendChild(div);
+        }
+      }
+    }
+
+    function mostrarNota(fecha) {
+      const nota = localStorage.getItem("nota-" + fecha);
+      notaTextoEl.textContent = nota || "No hay nota.";
+      borrarNotaBtn.style.display = "inline-block";
+      fechaSeleccionada = fecha;
+    }
+
+    borrarNotaBtn.onclick = () => {
+      if (fechaSeleccionada && confirm("¿Estás seguro de eliminar la nota?")) {
+        localStorage.removeItem("nota-" + fechaSeleccionada);
+        notaTextoEl.textContent = "Nota eliminada.";
+        borrarNotaBtn.style.display = "none";
+        actualizarFechasNotas();
+      }
+    };
+
+    obtenerColores();
+    renderizarCalendario();
+    actualizarFechasNotas();
+  </script>
+</body>
+</html>
