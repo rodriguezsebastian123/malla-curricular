@@ -141,6 +141,7 @@
   <div class="acciones">
     <button onclick="exportarPDF()">Exportar PDF</button>
     <button onclick="resetearMalla()">Resetear malla</button>
+    <button onclick="window.location.href='calendario.html'">Calendario</button>
   </div>
 
   <div class="overlay" id="overlay" onclick="cerrarModal()"></div>
@@ -196,14 +197,10 @@
         container.appendChild(nivel);
       });
 
-      // Aplicar color de fondo niveles guardado o blanco
       const colorGuardado = localStorage.getItem("color-fondo-niveles") || "#ffffff";
       aplicarColorFondoNiveles(colorGuardado);
-
-      // Aplicar colores guardados para "Semestre" (fondo azul)
       aplicarColorSemestre(localStorage.getItem("color-semestre") || "#0078d7");
 
-      // Aplicar color título y sincronizar color texto "Semestre X"
       const colorTituloGuardado = localStorage.getItem("color-titulo") || "#0078d7";
       const titulo = document.getElementById("titulo-principal");
       titulo.style.color = colorTituloGuardado;
@@ -211,24 +208,21 @@
         h2.style.color = colorTituloGuardado;
       });
 
-      // Doble clic para cambiar color fondo niveles (en fondo nivel, no ramos ni h2)
       document.querySelectorAll(".nivel").forEach(nivelDiv => {
         nivelDiv.addEventListener("dblclick", (e) => {
-          if (e.target.classList.contains("ramo") || e.target.tagName === "H2") return; // Ignorar si clic en ramo o h2
+          if (e.target.classList.contains("ramo") || e.target.tagName === "H2") return;
           const colorPicker = document.getElementById("color-fondo-niveles");
           colorPicker.value = localStorage.getItem("color-fondo-niveles") || "#ffffff";
           colorPicker.click();
         });
       });
 
-      // Doble clic en título principal para cambiar color (texto título y "Semestre X")
       titulo.addEventListener("dblclick", () => {
         const colorTituloPicker = document.getElementById("color-titulo");
         colorTituloPicker.value = localStorage.getItem("color-titulo") || "#0078d7";
         colorTituloPicker.click();
       });
 
-      // Doble clic en "Semestre X" para cambiar solo el fondo azul (del recuadro)
       document.querySelectorAll(".nivel h2").forEach(h2 => {
         h2.addEventListener("dblclick", () => {
           const colorSemestrePicker = document.getElementById("color-semestre");
@@ -241,7 +235,6 @@
     function agregarEventosRamo(ramo) {
       ramo.onclick = cambiarEstado;
 
-      // Tap largo para móvil abre modal
       let timer = null;
       ramo.addEventListener('touchstart', e => {
         timer = setTimeout(() => {
@@ -261,7 +254,6 @@
         }
       });
 
-      // Doble clic abre modal notas (solo)
       ramo.ondblclick = abrirModal;
     }
 
@@ -299,7 +291,6 @@
       let porcentaje = ((contadores.aprobado / total) * 100).toFixed(1);
       document.getElementById("avance").textContent = isNaN(porcentaje) ? "0%" : porcentaje + "%";
 
-      // promedio general
       let totalNotas = 0;
       let sumaNotas = 0;
       document.querySelectorAll(".ramo").forEach(r => {
@@ -332,28 +323,23 @@
       });
       aplicarColores();
 
-      // Cargar y aplicar color titulo guardado
       const colorTitulo = localStorage.getItem("color-titulo") || "#0078d7";
       const tituloElem = document.getElementById("titulo-principal");
       tituloElem.style.color = colorTitulo;
-      // Sincronizar color de los títulos semestre también
       document.querySelectorAll(".nivel h2").forEach(h2 => {
         h2.style.color = colorTitulo;
       });
 
-      // Cambiar color titulo al elegir en input oculto
       const tituloColorInput = document.getElementById("color-titulo");
       tituloColorInput.addEventListener("input", (e) => {
         const color = e.target.value;
         tituloElem.style.color = color;
-        // Sincronizar color de los títulos semestre también
         document.querySelectorAll(".nivel h2").forEach(h2 => {
           h2.style.color = color;
         });
         localStorage.setItem("color-titulo", color);
       });
 
-      // Cambiar color "Semestre" al elegir en input oculto (solo fondo azul)
       const semestreColorInput = document.getElementById("color-semestre");
       semestreColorInput.addEventListener("input", (e) => {
         const color = e.target.value;
@@ -362,7 +348,6 @@
       });
     }
 
-    // Cambiar color fondo niveles cuando cambia input oculto
     const colorFondoNiveles = document.getElementById("color-fondo-niveles");
     colorFondoNiveles.addEventListener("input", (e) => {
       const color = e.target.value;
@@ -440,58 +425,56 @@
     function exportarPDF() {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
-      const titulo = document.getElementById("titulo-principal").textContent;
-      doc.setFontSize(16);
-      doc.text(titulo, 10, 10);
-      let y = 20;
 
+      doc.setFontSize(18);
+      doc.text("Malla Curricular de Dafne", 10, 10);
+
+      let y = 20;
       malla.forEach(n => {
         doc.setFontSize(14);
-        doc.text(`Semestre ${n.nivel}`, 10, y);
-        y += 7;
+        doc.text("Semestre " + n.nivel, 10, y);
+        y += 8;
         n.ramos.forEach(r => {
-          let estado = localStorage.getItem(`nivel${n.nivel}-${r}`) || "nocursado";
-          let texto = `${r} [${estado}]`;
+          const estado = localStorage.getItem(`nivel${n.nivel}-${r}`) || "nocursado";
+          const notas = JSON.parse(localStorage.getItem("notas_" + `nivel${n.nivel}-${r}`));
+          let textoEstado = "";
+          switch (estado) {
+            case "aprobado": textoEstado = "✅ Aprobado"; break;
+            case "reprobado": textoEstado = "❌ Reprobado"; break;
+            case "cursando": textoEstado = "🕒 Cursando"; break;
+            default: textoEstado = "⏸️ No cursado";
+          }
+          let promedio = notas ? notas.promedio.toFixed(1) : "-";
+          let linea = `${r} — ${textoEstado} — Promedio: ${promedio}`;
           doc.setFontSize(12);
-          doc.text(texto, 12, y);
-          y += 6;
+          doc.text(linea, 12, y);
+          y += 7;
           if (y > 280) {
             doc.addPage();
-            y = 10;
+            y = 20;
           }
         });
         y += 5;
       });
 
-      doc.save("malla-curricular.pdf");
+      doc.save("malla_dafne.pdf");
     }
 
     function resetearMalla() {
-      if (!confirm("¿Quieres resetear toda la malla y notas?")) return;
-      localStorage.clear();
-      location.reload();
-    }
-
-    // Doble clic en fondo body para cambiar color fondo general página
-    document.body.addEventListener("dblclick", (e) => {
-      // Solo si doble clic fuera de zonas clickeables (niveles, titulo, etc)
-      if (e.target === document.body) {
-        const bgPicker = document.getElementById("bgColorPicker");
-        bgPicker.value = window.getComputedStyle(document.body).backgroundColor;
-        bgPicker.click();
-      }
-    });
-
-    const bgColorPicker = document.getElementById("bgColorPicker");
-    bgColorPicker.addEventListener("input", e => {
-      document.body.style.backgroundColor = e.target.value;
-      localStorage.setItem("color-fondo-general", e.target.value);
-    });
-
-    // Aplicar color fondo general guardado
-    function aplicarFondoGeneral() {
-      const color = localStorage.getItem("color-fondo-general") || "#f5f9fd";
-      document.body.style.backgroundColor = color;
+      if (!confirm("¿Seguro que quieres resetear todo? Perderás tus datos.")) return;
+      estados.forEach(est => {
+        document.querySelectorAll("." + est).forEach(elem => {
+          elem.classList.remove(est);
+        });
+      });
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith("nivel") || key.startsWith("notas_")) {
+          localStorage.removeItem(key);
+        }
+      });
+      crearMalla();
+      cargarColores();
+      actualizarResumen();
     }
 
     window.onload = () => {
@@ -499,7 +482,7 @@
       cargarEstados();
       cargarColores();
       actualizarResumen();
-      aplicarFondoGeneral();
+      aplicarColores();
     };
   </script>
 </body>
