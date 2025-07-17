@@ -100,11 +100,37 @@
       cursor: pointer;
       border-radius: 5px;
     }
+
+    .calendario-header {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .mes-actual {
+      font-size: 1.5rem;
+      color: var(--color-titulo);
+    }
+
+    .boton-mes {
+      background-color: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--color-titulo);
+    }
   </style>
 </head>
 <body>
   <h1 class="titulo-calendario">Calendario</h1>
   <a href="index.html" class="boton-volver">Volver a la Malla</a>
+  <div class="calendario-header">
+    <button class="boton-mes" onclick="cambiarMes(-1)">&#9664;</button>
+    <div id="mesActual" class="mes-actual"></div>
+    <button class="boton-mes" onclick="cambiarMes(1)">&#9654;</button>
+  </div>
   <div class="calendario-container">
     <div>
       <div class="calendario" id="calendario"></div>
@@ -124,11 +150,14 @@
 
   <script>
     const diasSemana = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     const calendarioEl = document.getElementById("calendario");
     const listaFechasEl = document.getElementById("listaFechas");
     const notaTextoEl = document.getElementById("notaTexto");
     const borrarNotaBtn = document.getElementById("borrarNotaBtn");
+    const mesActualEl = document.getElementById("mesActual");
     let fechaSeleccionada = null;
+    let fechaActual = new Date();
 
     function obtenerColores() {
       document.documentElement.style.setProperty('--color-titulo', localStorage.getItem('color-titulo') || '#1f3c88');
@@ -138,6 +167,8 @@
 
     function renderizarCalendario() {
       calendarioEl.innerHTML = "";
+      mesActualEl.textContent = `${meses[fechaActual.getMonth()]} ${fechaActual.getFullYear()}`;
+
       diasSemana.forEach(d => {
         const div = document.createElement("div");
         div.textContent = d;
@@ -145,9 +176,8 @@
         calendarioEl.appendChild(div);
       });
 
-      const hoy = new Date();
-      const year = hoy.getFullYear();
-      const mes = hoy.getMonth();
+      const year = fechaActual.getFullYear();
+      const mes = fechaActual.getMonth();
       const primerDia = new Date(year, mes, 1);
       const primerDiaSemana = primerDia.getDay();
       const diasEnMes = new Date(year, mes + 1, 0).getDate();
@@ -164,6 +194,11 @@
         div.onclick = () => anotarNota(fechaStr);
         calendarioEl.appendChild(div);
       }
+    }
+
+    function cambiarMes(delta) {
+      fechaActual.setMonth(fechaActual.getMonth() + delta);
+      renderizarCalendario();
     }
 
     function anotarNota(fecha) {
