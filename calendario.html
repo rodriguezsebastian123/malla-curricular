@@ -21,8 +21,8 @@
       margin: 20px 0 10px;
     }
 
-    .boton-volver {
-      margin-bottom: 20px;
+    .boton-volver, .boton-horario {
+      margin-bottom: 10px;
       padding: 10px 20px;
       background-color: var(--color-semestre);
       color: white;
@@ -31,6 +31,12 @@
       cursor: pointer;
       text-decoration: none;
       font-weight: bold;
+    }
+
+    .botones-navegacion {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .calendario-container {
@@ -125,7 +131,10 @@
 </head>
 <body>
   <h1 class="titulo-calendario">Calendario</h1>
-  <a href="index.html" class="boton-volver">Volver a la Malla</a>
+  <div class="botones-navegacion">
+    <a href="index.html" class="boton-volver">  Ir al horario</a>
+    <a href="malla.html" class="boton-horario">Ir a la malla</a>
+  </div>
   <div class="calendario-header">
     <button class="boton-mes" onclick="cambiarMes(-1)">&#9664;</button>
     <div id="mesActual" class="mes-actual"></div>
