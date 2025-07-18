@@ -9,27 +9,54 @@
       background: #f5f9fd;
       margin: 0;
       padding: 20px;
+      transition: background-color 0.3s ease;
     }
     h1 {
       text-align: center;
       color: #0078d7;
       user-select: none;
       cursor: pointer;
+      transition: color 0.3s ease;
     }
-    .color-picker {
+    .color-picker-estados {
       display: flex;
       justify-content: center;
       gap: 20px;
       margin-bottom: 20px;
       flex-wrap: wrap;
       align-items: center;
+      border-bottom: 2px solid #0078d7;
+      padding-bottom: 10px;
+      user-select: none;
     }
-    .color-picker label {
+    .color-picker-estados label {
       display: flex;
       align-items: center;
       gap: 5px;
       font-size: 14px;
+    }
+    .color-picker-ajustes {
+      display: none;
+      position: fixed;
+      top: 60px;
+      right: 10px;
+      background: white;
+      padding: 10px 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      z-index: 1001;
       user-select: none;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 14px;
+      min-width: 180px;
+    }
+    .color-picker-ajustes label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 0;
     }
     #niveles {
       display: flex;
@@ -46,6 +73,7 @@
       transition: background 0.3s ease;
       cursor: pointer;
       user-select: none;
+      position: relative;
     }
     .nivel h2 {
       text-align: center;
@@ -57,6 +85,7 @@
       border-radius: 4px;
       user-select: none;
       cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
     .ramo {
       margin: 5px 0;
@@ -67,8 +96,20 @@
       text-align: center;
       position: relative;
       user-select: none;
+      padding-bottom: 18px;
+      transition: background-color 0.3s ease;
     }
-
+    .promedio-ramos {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: #333;
+      opacity: 0.7;
+      user-select: none;
+      pointer-events: none;
+    }
     .resumen, .acciones {
       text-align: center;
       margin-top: 20px;
@@ -92,14 +133,29 @@
       z-index: 10;
       border-radius: 8px;
       box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      max-width: 300px;
+      max-width: 320px;
       width: 90%;
+      user-select: none;
+      max-height: 60vh;
+      overflow-y: auto;
     }
-    .modal input[type="number"] {
-      width: 48%;
-      margin: 5px 1%;
-      box-sizing: border-box;
+    .modal div.inputs-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .modal div.inputs-row input[type="number"] {
       padding: 6px;
+      box-sizing: border-box;
+      font-size: 14px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    .modal div.inputs-row input.nota-input {
+      flex: 1.5;
+    }
+    .modal div.inputs-row input.porcentaje-input {
+      flex: 1;
     }
     .overlay {
       position: fixed;
@@ -119,20 +175,52 @@
       border: none;
       border-radius: 5px;
       transition: background-color 0.3s ease;
+      user-select: none;
     }
     button:hover {
       opacity: 0.85;
+    }
+    #icon-ajustes {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      font-size: 28px;
+      cursor: pointer;
+      color: #0078d7;
+      user-select: none;
+      z-index: 1002;
+      background: white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease;
+    }
+    #icon-ajustes:hover {
+      background-color: #e0e0e0;
     }
   </style>
 </head>
 <body>
   <h1 id="titulo-principal" title="Doble clic para cambiar color">Malla Curricular de Dafne — Para que sea la mejor matrona del mundo 👶🏼💖</h1>
 
-  <div class="color-picker">
+  <div class="color-picker-estados">
     <label>Aprobado <input type="color" id="color-aprobado"></label>
     <label>Reprobado <input type="color" id="color-reprobado"></label>
     <label>Cursando <input type="color" id="color-cursando"></label>
     <label>No cursado <input type="color" id="color-nocursado"></label>
+  </div>
+
+  <div id="icon-ajustes" title="Abrir ajustes de título y fondo">⚙️</div>
+
+  <div class="color-picker-ajustes" id="panel-ajustes">
+    <label>Título <input type="color" id="color-titulo"></label>
+    <label>Fondo niveles <input type="color" id="color-fondo-niveles"></label>
+    <label>Fondo página <input type="color" id="color-fondo-pagina"></label>
+    <label>Fondo Semestre <input type="color" id="color-fondo-semestre"></label>
   </div>
 
   <div id="niveles"></div>
@@ -152,22 +240,15 @@
     <button onclick="window.location.href='calendario.html'">Calendario</button>
     <button onclick="window.location.href='index.html'">Horario</button>
   </div>
-  </div>
 
   <div class="overlay" id="overlay" onclick="cerrarModal()"></div>
   <div class="modal" id="modal">
-    <h3>Notas del Ramo</h3>
+    <h3>Notas y Porcentajes del Ramo</h3>
     <div id="inputsNotas"></div>
     <button onclick="agregarInputNota()">+ Agregar Nota</button>
     <button onclick="guardarNotas()">Guardar</button>
     <button onclick="eliminarNotas()">🗑️ Eliminar notas</button>
   </div>
-
-  <!-- Inputs ocultos para selectores de color -->
-  <input type="color" id="color-fondo-niveles" style="display:none;">
-  <input type="color" id="bgColorPicker" style="display:none;">
-  <input type="color" id="color-titulo" style="display:none;">
-  <input type="color" id="color-semestre" style="display:none;">
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -177,8 +258,8 @@
 
     const malla = [
       { nivel: 1, ramos: ["Morfología I", "Ciencias Biológicas y Químicas", "Módulo Gestión en Salud I", "Rol de la Matrona en la Sociedad"] },
-      { nivel: 2, ramos: ["Fundamentos Biológicos I", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer"] },
-      { nivel: 3, ramos: ["Fundamentos Biológicos II", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública"] },
+      { nivel: 2, ramos: ["Fundamentos Biológicos I", "Morfología II", "Módulo Gestión en Salud II", "Electivo Cultural", "Atención de Salud Integral a la Mujer","Ingles pre intermedio"] },
+      { nivel: 3, ramos: ["Fundamentos Biológicos II", "Embriología y Genética", "Módulo Gestión en Salud III", "Puerperio y Salud Pública", "Ingles intermedio"] },
       { nivel: 4, ramos: ["Fundamentos Biológicos III", "Módulo Gestión en Salud IV", "Electivo Cultural II", "Promoción de la Salud, Control Prenatal y Salud Pública"] },
       { nivel: 5, ramos: ["Atención Primaria y Ginecología Preventiva", "Módulo Gestión en Matronería I"] },
       { nivel: 6, ramos: ["Salud Sexual, Planificación Familiar", "Módulo Gestión en Matronería II"] },
@@ -205,40 +286,6 @@
           nivel.appendChild(ramo);
         });
         container.appendChild(nivel);
-      });
-
-      const colorGuardado = localStorage.getItem("color-fondo-niveles") || "#ffffff";
-      aplicarColorFondoNiveles(colorGuardado);
-      aplicarColorSemestre(localStorage.getItem("color-semestre") || "#0078d7");
-
-      const colorTituloGuardado = localStorage.getItem("color-titulo") || "#0078d7";
-      const titulo = document.getElementById("titulo-principal");
-      titulo.style.color = colorTituloGuardado;
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.style.color = colorTituloGuardado;
-      });
-
-      document.querySelectorAll(".nivel").forEach(nivelDiv => {
-        nivelDiv.addEventListener("dblclick", (e) => {
-          if (e.target.classList.contains("ramo") || e.target.tagName === "H2") return;
-          const colorPicker = document.getElementById("color-fondo-niveles");
-          colorPicker.value = localStorage.getItem("color-fondo-niveles") || "#ffffff";
-          colorPicker.click();
-        });
-      });
-
-      titulo.addEventListener("dblclick", () => {
-        const colorTituloPicker = document.getElementById("color-titulo");
-        colorTituloPicker.value = localStorage.getItem("color-titulo") || "#0078d7";
-        colorTituloPicker.click();
-      });
-
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.addEventListener("dblclick", () => {
-          const colorSemestrePicker = document.getElementById("color-semestre");
-          colorSemestrePicker.value = localStorage.getItem("color-semestre") || "#0078d7";
-          colorSemestrePicker.click();
-        });
       });
     }
 
@@ -277,12 +324,14 @@
       localStorage.setItem(nombre, nuevoEstado);
       actualizarResumen();
       aplicarColores();
+      actualizarPromedioEnRamo(div);
     }
 
     function cargarEstados() {
       document.querySelectorAll(".ramo").forEach(div => {
         let estado = localStorage.getItem(div.dataset.nombre) || "nocursado";
         div.classList.add(estado);
+        actualizarPromedioEnRamo(div);
       });
     }
 
@@ -336,149 +385,252 @@
       const colorTitulo = localStorage.getItem("color-titulo") || "#0078d7";
       const tituloElem = document.getElementById("titulo-principal");
       tituloElem.style.color = colorTitulo;
+      document.getElementById("color-titulo").value = colorTitulo;
+      document.getElementById("color-titulo").addEventListener("input", (e) => {
+        const color = e.target.value;
+        tituloElem.style.color = color;
+        localStorage.setItem("color-titulo", color);
+        sincronizarColorTituloSemestre(color);
+      });
+
+      const colorFondoNiveles = localStorage.getItem("color-fondo-niveles") || "#ffffff";
+      document.getElementById("color-fondo-niveles").value = colorFondoNiveles;
+      aplicarColorFondoNiveles(colorFondoNiveles);
+      document.getElementById("color-fondo-niveles").addEventListener("input", (e) => {
+        const color = e.target.value;
+        aplicarColorFondoNiveles(color);
+        localStorage.setItem("color-fondo-niveles", color);
+      });
+
+      const colorFondoPagina = localStorage.getItem("color-fondo-pagina") || "#f5f9fd";
+      document.getElementById("color-fondo-pagina").value = colorFondoPagina;
+      document.body.style.backgroundColor = colorFondoPagina;
+      document.getElementById("color-fondo-pagina").addEventListener("input", (e) => {
+        const color = e.target.value;
+        document.body.style.backgroundColor = color;
+        localStorage.setItem("color-fondo-pagina", color);
+      });
+
+      const colorFondoSemestre = localStorage.getItem("color-fondo-semestre") || "#0078d7";
+      document.getElementById("color-fondo-semestre").value = colorFondoSemestre;
+      aplicarColorFondoSemestre(colorFondoSemestre);
+      document.getElementById("color-fondo-semestre").addEventListener("input", (e) => {
+        const color = e.target.value;
+        aplicarColorFondoSemestre(color);
+        localStorage.setItem("color-fondo-semestre", color);
+      });
+    }
+
+    function aplicarColorFondoNiveles(color) {
+      document.querySelectorAll(".nivel").forEach(n => {
+        n.style.backgroundColor = color;
+      });
+    }
+    function aplicarColorFondoSemestre(color) {
+      document.querySelectorAll(".nivel h2").forEach(h2 => {
+        h2.style.backgroundColor = color;
+      });
+    }
+
+    function sincronizarColorTituloSemestre(color) {
+      document.querySelectorAll(".nivel h2").forEach(h2 => {
+        h2.style.color = color;
+      });
+    }
+
+    // Sincronizar color semestre al cargar para que el texto se mantenga visible
+    function sincronizarColorTituloSemestreInicial() {
+      const colorTitulo = localStorage.getItem("color-titulo") || "#0078d7";
       document.querySelectorAll(".nivel h2").forEach(h2 => {
         h2.style.color = colorTitulo;
       });
-
-      const tituloColorInput = document.getElementById("color-titulo");
-      tituloColorInput.addEventListener("input", (e) => {
-        const color = e.target.value;
-        tituloElem.style.color = color;
-        document.querySelectorAll(".nivel h2").forEach(h2 => {
-          h2.style.color = color;
-        });
-        localStorage.setItem("color-titulo", color);
-      });
-
-      const semestreColorInput = document.getElementById("color-semestre");
-      semestreColorInput.addEventListener("input", (e) => {
-        const color = e.target.value;
-        aplicarColorSemestre(color);
-        sincronizarBotonesAcciones(color);
-        localStorage.setItem("color-semestre", color);
-      });
     }
 
-    const colorFondoNiveles = document.getElementById("color-fondo-niveles");
-    colorFondoNiveles.addEventListener("input", (e) => {
-      const color = e.target.value;
-      localStorage.setItem("color-fondo-niveles", color);
-      aplicarColorFondoNiveles(color);
-    });
-
-    function aplicarColorFondoNiveles(color) {
-      document.querySelectorAll(".nivel").forEach(nivelDiv => {
-        nivelDiv.style.background = color;
-      });
-    }
-
-    function aplicarColorSemestre(color) {
-      document.querySelectorAll(".nivel h2").forEach(h2 => {
-        h2.style.background = color;
-      });
-    }
-
-    function sincronizarBotonesAcciones(color) {
-      document.querySelectorAll(".acciones button").forEach(boton => {
-        boton.style.backgroundColor = color;
-        boton.style.color = "white";
-      });
-    }
-
+    // Modal notas y porcentajes
     function abrirModal(e) {
       ramoActual = e.target;
-      const overlay = document.getElementById("overlay");
-      const modal = document.getElementById("modal");
-      const contenedor = document.getElementById("inputsNotas");
-      contenedor.innerHTML = "";
-      let datos = JSON.parse(localStorage.getItem("notas_" + ramoActual.dataset.nombre)) || { notas: [], promedio: 0 };
-      datos.notas.forEach(nota => {
-        const div = document.createElement("div");
-        div.innerHTML = `<input type="number" placeholder="Nota" value="${nota.nota}" min="0" max="100" step="0.1"> <input type="number" placeholder="%" value="${nota.porcentaje}" min="0" max="100" step="0.1">`;
-        contenedor.appendChild(div);
-      });
-      overlay.style.display = "block";
-      modal.style.display = "block";
+      const nombre = ramoActual.dataset.nombre;
+      const datos = JSON.parse(localStorage.getItem("notas_" + nombre)) || { notas: [] };
+      const inputsDiv = document.getElementById("inputsNotas");
+      inputsDiv.innerHTML = "";
+
+      if (datos.notas.length > 0) {
+        datos.notas.forEach(({nota, porcentaje}) => {
+          crearInputNota(inputsDiv, nota, porcentaje);
+        });
+      } else {
+        crearInputNota(inputsDiv, "", "");
+      }
+
+      document.getElementById("overlay").style.display = "block";
+      document.getElementById("modal").style.display = "block";
+    }
+
+    function crearInputNota(container, notaVal = "", porcentajeVal = "") {
+      const wrapper = document.createElement("div");
+      wrapper.className = "inputs-row";
+
+      const inputNota = document.createElement("input");
+      inputNota.type = "number";
+      inputNota.min = 1;
+      inputNota.max = 7;
+      inputNota.step = 0.1;
+      inputNota.placeholder = "Nota (1-7)";
+      inputNota.value = notaVal;
+      inputNota.className = "nota-input";
+
+      const inputPorcentaje = document.createElement("input");
+      inputPorcentaje.type = "number";
+      inputPorcentaje.min = 0;
+      inputPorcentaje.max = 100;
+      inputPorcentaje.placeholder = "%";
+      inputPorcentaje.value = porcentajeVal;
+      inputPorcentaje.className = "porcentaje-input";
+
+      wrapper.appendChild(inputNota);
+      wrapper.appendChild(inputPorcentaje);
+
+      container.appendChild(wrapper);
     }
 
     function agregarInputNota() {
-      const div = document.createElement("div");
-      div.innerHTML = `<input type="number" placeholder="Nota" min="0" max="100" step="0.1"> <input type="number" placeholder="%" min="0" max="100" step="0.1">`;
-      document.getElementById("inputsNotas").appendChild(div);
+      const inputsDiv = document.getElementById("inputsNotas");
+      crearInputNota(inputsDiv);
     }
 
     function guardarNotas() {
-      const inputs = document.querySelectorAll("#inputsNotas div");
-      let notas = [];
-      let sumaPorcentaje = 0;
-      let sumaPonderada = 0;
-      for (let div of inputs) {
-        let notaInput = div.children[0];
-        let porcentajeInput = div.children[1];
-        let nota = parseFloat(notaInput.value);
-        let porcentaje = parseFloat(porcentajeInput.value);
-        if (isNaN(nota) || isNaN(porcentaje) || porcentaje <= 0) continue;
+      if (!ramoActual) return;
+      const inputsDiv = document.getElementById("inputsNotas");
+      const wrappers = Array.from(inputsDiv.children);
+
+      const notas = [];
+      let sumaPorcentajes = 0;
+
+      for (const w of wrappers) {
+        const inputNota = w.children[0];
+        const inputPorc = w.children[1];
+
+        const nota = parseFloat(inputNota.value);
+        const porcentaje = parseFloat(inputPorc.value);
+
+        if (
+          isNaN(nota) || nota < 1 || nota > 7 ||
+          isNaN(porcentaje) || porcentaje < 0 || porcentaje > 100
+        ) {
+          alert("Por favor ingresa notas entre 1 y 7, y porcentajes entre 0 y 100.");
+          return;
+        }
+
         notas.push({ nota, porcentaje });
-        sumaPorcentaje += porcentaje;
-        sumaPonderada += nota * porcentaje;
+        sumaPorcentajes += porcentaje;
       }
-      let promedio = sumaPorcentaje ? sumaPonderada / sumaPorcentaje : 0;
-      localStorage.setItem("notas_" + ramoActual.dataset.nombre, JSON.stringify({ notas, promedio }));
+
+      if (sumaPorcentajes === 0) {
+        alert("La suma de los porcentajes debe ser mayor a 0.");
+        return;
+      }
+      if (sumaPorcentajes > 100) {
+        if (!confirm("La suma de porcentajes es mayor a 100%. ¿Deseas continuar?")) {
+          return;
+        }
+      }
+
+      // Calcular promedio ponderado
+      let sumaPonderada = 0;
+      notas.forEach(({nota, porcentaje}) => {
+        sumaPonderada += nota * porcentaje;
+      });
+      const promedio = sumaPonderada / sumaPorcentajes;
+
+      const datos = { notas, promedio };
+      localStorage.setItem("notas_" + ramoActual.dataset.nombre, JSON.stringify(datos));
+
+      actualizarPromedioEnRamo(ramoActual);
       actualizarResumen();
       cerrarModal();
     }
 
+    function actualizarPromedioEnRamo(div) {
+      // Elimina el promedio anterior
+      const previo = div.querySelector(".promedio-ramos");
+      if (previo) previo.remove();
+
+      const datos = JSON.parse(localStorage.getItem("notas_" + div.dataset.nombre));
+      if (datos && datos.promedio) {
+        const p = document.createElement("div");
+        p.className = "promedio-ramos";
+        p.textContent = `Prom: ${datos.promedio.toFixed(2)}`;
+        div.appendChild(p);
+      }
+    }
+
     function eliminarNotas() {
+      if (!ramoActual) return;
       localStorage.removeItem("notas_" + ramoActual.dataset.nombre);
+      actualizarPromedioEnRamo(ramoActual);
       actualizarResumen();
       cerrarModal();
     }
 
     function cerrarModal() {
-      document.getElementById("modal").style.display = "none";
       document.getElementById("overlay").style.display = "none";
+      document.getElementById("modal").style.display = "none";
       ramoActual = null;
     }
 
-    function resetearMalla() {
-      if (!confirm("¿Seguro que quieres resetear toda la malla? Se perderán todos los datos.")) return;
-      Object.keys(localStorage).forEach(k => {
-        if (k.startsWith("nivel") || k.startsWith("notas_")) localStorage.removeItem(k);
-      });
-      location.reload();
-    }
-
-    function exportarPDF() {
-      const { jsPDF } = window.jspdf;
-      html2canvas(document.getElementById("niveles")).then(canvas => {
-        const imgData = canvas.toDataURL("image/png");
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'pt',
-          format: [canvas.width, canvas.height]
-        });
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save("malla_curricular.pdf");
-      });
-    }
-
-    window.onload = () => {
-      crearMalla();
-      cargarEstados();
-      cargarColores();
-      actualizarResumen();
-      aplicarColores();
-
-      // Aplicar color fondo niveles
-      aplicarColorFondoNiveles(localStorage.getItem("color-fondo-niveles") || "#ffffff");
-
-      // Aplicar color semestre y sincronizar botones
-      const colorSemestre = localStorage.getItem("color-semestre") || "#0078d7";
-      aplicarColorSemestre(colorSemestre);
-      sincronizarBotonesAcciones(colorSemestre);
+    // Toggle panel ajustes
+    document.getElementById("icon-ajustes").onclick = () => {
+      const panel = document.getElementById("panel-ajustes");
+      panel.style.display = panel.style.display === "flex" ? "none" : "flex";
     };
+
+    // Exportar PDF
+    async function exportarPDF() {
+      const niveles = document.getElementById("niveles");
+      const pdf = new jspdf.jsPDF('p', 'pt', 'a4');
+      const scale = 2;
+      const canvas = await html2canvas(niveles, { scale: scale });
+      const imgData = canvas.toDataURL("image/png");
+
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save("malla_curricular.pdf");
+    }
+
+    // Resetear malla
+    function resetearMalla() {
+      if (confirm("¿Seguro que quieres resetear la malla? Se perderán los estados y notas guardadas.")) {
+        estados.forEach(est => {
+          localStorage.removeItem("color-" + est);
+        });
+        malla.forEach(n => {
+          n.ramos.forEach(r => {
+            localStorage.removeItem(`nivel${n.nivel}-${r}`);
+            localStorage.removeItem(`notas_nivel${n.nivel}-${r}`);
+            localStorage.removeItem(`notas_nivel${n.nivel}-${r}`);
+            localStorage.removeItem("notas_" + `nivel${n.nivel}-${r}`);
+          });
+        });
+        localStorage.removeItem("color-titulo");
+        localStorage.removeItem("color-fondo-niveles");
+        localStorage.removeItem("color-fondo-pagina");
+        localStorage.removeItem("color-fondo-semestre");
+        location.reload();
+      }
+    }
+
+    // Inicialización
+    crearMalla();
+    cargarEstados();
+    cargarColores();
+    sincronizarColorTituloSemestreInicial();
+    actualizarResumen();
+
+    // Aplica colores iniciales de estados tras cargar
+    aplicarColores();
   </script>
 </body>
 </html>
-
-
